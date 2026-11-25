@@ -15,8 +15,18 @@ import json
 import math
 import os
 import struct
+import sys
 import numpy as np
 from PIL import Image, ImageDraw, ImageFilter
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+if SCRIPT_DIR not in sys.path:
+    sys.path.insert(0, SCRIPT_DIR)
+
+try:
+    from inject_3d_studio_lighting import THEME_LIGHT_RIGS
+except ImportError:
+    THEME_LIGHT_RIGS = {}
 
 
 def load_glb_scene(glb_path: str) -> dict:
@@ -117,8 +127,9 @@ def render_glb_to_image(
     rx: float = 12.0,
     ry: float = -24.0,
     rz: float = 2.0,
+    theme: str = "obsidian_kinetic",
 ) -> Image.Image:
-    """Render any .glb binary into a crisp transparent-background studio RGBA image."""
+    """Render any .glb binary into a crisp transparent-background studio RGBA image with 3-point theme lighting."""
     scene = load_glb_scene(glb_path)
     R = _rot_mat(rx, ry, rz)
 
@@ -132,11 +143,26 @@ def render_glb_to_image(
 
     key_l = np.array([0.52, 0.72, 0.48], dtype=np.float32)
     key_l /= np.linalg.norm(key_l)
+    fill_l = np.array([-0.58, 0.44, 0.68], dtype=np.float32)
+    fill_l /= np.linalg.norm(fill_l)
     rim_l = np.array([-0.68, 0.35, -0.58], dtype=np.float32)
     rim_l /= np.linalg.norm(rim_l)
     view_v = np.array([0.0, 0.0, 1.0], dtype=np.float32)
     half_v = key_l + view_v
     half_v /= np.linalg.norm(half_v)
+
+    rig = THEME_LIGHT_RIGS.get(theme) or THEME_LIGHT_RIGS.get("obsidian_kinetic")
+    if rig:
+        ar, ag, ab, _ = rig["ambient"]
+        amb_col = np.array([ar, ag, ab], dtype=np.float32) / 100000.0 * 0.48
+        k_rgb = np.array(rig["lights"][0][:3], dtype=np.float32) / 100000.0
+        f_rgb = np.array(rig["lights"][1][:3], dtype=np.float32) / 100000.0
+        r_rgb = np.array(rig["lights"][2][:3], dtype=np.float32) / 100000.0
+    else:
+        amb_col = np.array([0.24, 0.24, 0.26], dtype=np.float32)
+        k_rgb = np.array([1.0, 0.82, 0.64], dtype=np.float32)
+        f_rgb = np.array([0.45, 0.68, 0.96], dtype=np.float32)
+        r_rgb = np.array([0.88, 0.80, 1.0], dtype=np.float32)
 
     # Collect world-projected triangles from all primitives for global painter sort
     tri_xy_all = []
@@ -178,14 +204,15 @@ def render_glb_to_image(
         else:
             albedo_lin = np.tile(prim["base_col"], (len(idx), 1))
 
-        ndotl = np.clip(np.sum(n_face * key_l[None, :], axis=1), 0.0, 1.0)[:, None]
-        rim = np.power(1.0 - np.abs(n_face[:, 2:3]), 2.5) * 0.32
+        ndotl_key = np.clip(np.sum(n_face * key_l[None, :], axis=1), 0.0, 1.0)[:, None]
+        ndotl_fill = np.clip(np.sum(n_face * fill_l[None, :], axis=1), 0.0, 1.0)[:, None]
+        rim = np.power(1.0 - np.abs(n_face[:, 2:3]), 2.5) * 0.36
         ndoth = np.clip(np.sum(n_face * half_v[None, :], axis=1), 0.0, 1.0)[:, None]
         shininess = max(8.0, 72.0 * (1.0 - prim["rough"]))
         spec = np.power(ndoth, shininess) * (0.35 + 0.55 * prim["metal"])
 
-        ambient = 0.24
-        lit = albedo_lin * (ambient + 0.85 * ndotl) + np.array([0.85, 0.90, 1.0], dtype=np.float32) * (spec + rim * 0.35)
+        lit_diffuse = amb_col[None, :] + (ndotl_key * 0.78) * k_rgb[None, :] + (ndotl_fill * 0.34) * f_rgb[None, :]
+        lit = albedo_lin * lit_diffuse + k_rgb[None, :] * (spec * 0.92) + r_rgb[None, :] * (rim * 0.42)
         if prim["tex"] is not None:
             lit = lit * 0.30 + albedo_lin * prim["em_col"][None, :] * 0.92
         else:
@@ -272,9 +299,10 @@ def main():
     parser.add_argument("--rx", type=float, default=12.0, help="Rotation X degrees (default: 12)")
     parser.add_argument("--ry", type=float, default=-24.0, help="Rotation Y degrees (default: -24)")
     parser.add_argument("--rz", type=float, default=2.0, help="Rotation Z degrees (default: 2)")
+    parser.add_argument("--theme", default="obsidian_kinetic", help="3-point studio lighting theme preset")
     args = parser.parse_args()
 
-    img = render_glb_to_image(args.glb, args.size, args.size, args.rx, args.ry, args.rz)
+    img = render_glb_to_image(args.glb, args.size, args.size, args.rx, args.ry, args.rz, theme=args.theme)
     os.makedirs(os.path.dirname(os.path.abspath(args.out)), exist_ok=True)
     img.save(args.out, "PNG")
     print(f"Rendered studio preview ({args.size}x{args.size}) -> {args.out}")

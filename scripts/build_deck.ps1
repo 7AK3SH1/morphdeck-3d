@@ -2,14 +2,47 @@
 # Licensed under the Apache License, Version 2.0 (see LICENSE and NOTICE).
 
 param(
-    [Parameter(Mandatory = $true)][string]$SpecJson,
-    [Parameter(Mandatory = $true)][string]$AssetsDir,
+    [string]$SpecJson = "",
+    [string]$AssetsDir = "",
     [Parameter(Mandatory = $true)][string]$OutputPptx,
     [Parameter(Mandatory = $true)][string]$ExportDir,
-    [string]$CopyTo = ""
+    [string]$CopyTo = "",
+    [switch]$SkipExport,
+    [switch]$ExportOnly
 )
 
 $ErrorActionPreference = "Stop"
+
+if ($ExportOnly) {
+    if (!(Test-Path $OutputPptx)) { throw "OutputPptx not found for -ExportOnly: $OutputPptx" }
+    if (!(Test-Path $ExportDir)) { New-Item -ItemType Directory -Force -Path $ExportDir | Out-Null }
+    Stop-Process -Name POWERPNT -Force -ErrorAction SilentlyContinue
+    $ppt = New-Object -ComObject PowerPoint.Application
+    $pres = $null
+    try {
+        $pres = $ppt.Presentations.Open($OutputPptx, -1, 0, 0) # ReadOnly, msoFalse
+        for ($i = 1; $i -le $pres.Slides.Count; $i++) {
+            $pngPath = Join-Path $ExportDir "slide_$i.png"
+            $pres.Slides.Item($i).Export($pngPath, "PNG", 1920, 1080)
+            Write-Host "Exported lit slide $i -> $pngPath"
+        }
+        if (-not [string]::IsNullOrWhiteSpace($CopyTo)) {
+            Copy-Item -Path $OutputPptx -Destination $CopyTo -Force
+            Write-Host ("Copied deck -> " + $CopyTo)
+        }
+    } finally {
+        if ($null -ne $pres) { try { $pres.Close() } catch {} }
+        try { $ppt.Quit() } catch {}
+        try { [System.Runtime.Interopservices.Marshal]::ReleaseComObject($ppt) | Out-Null } catch {}
+        [GC]::Collect()
+        [GC]::WaitForPendingFinalizers()
+    }
+    exit 0
+}
+
+if ([string]::IsNullOrWhiteSpace($SpecJson) -or [string]::IsNullOrWhiteSpace($AssetsDir)) {
+    throw "SpecJson and AssetsDir are required unless -ExportOnly is specified."
+}
 
 $resolvedPath = Join-Path $AssetsDir "theme_resolved.json"
 if (Test-Path $resolvedPath) {
@@ -91,12 +124,27 @@ function Add-Bg($slide, [string]$imgPath) {
 function Add-Pic($slide, [string]$name, [string]$imgPath, [single]$x, [single]$y, [single]$w, [single]$h) {
     $existing = Find-Shape $slide $name
     if ($null -ne $existing) {
+        try {
+            $existing.PictureFormat.CropTop = [single]0
+            $existing.PictureFormat.CropBottom = [single]0
+        } catch {}
         $existing.Left = $x; $existing.Top = $y; $existing.Width = $w; $existing.Height = $h
         return $existing
     }
     $sh = $slide.Shapes.AddPicture($imgPath, 0, 1, $x, $y, $w, $h)
     $sh.Name = $name
     return $sh
+}
+
+function Add-TextShadow($tb) {
+    try {
+        $sh = $tb.TextFrame2.TextRange.Font.Shadow
+        $sh.Visible = -1
+        $sh.Blur = [single]6
+        $sh.OffsetX = [single]0
+        $sh.OffsetY = [single]3
+        $sh.Transparency = [single]0.48
+    } catch {}
 }
 
 function Add-Rect($slide, [string]$name, [single]$x, [single]$y, [single]$w, [single]$h, [int]$fillBgr, [single]$fillTrans = 0, [int]$borderBgr = -1, [single]$borderWeight = 0, [single]$cornerAdj = 0.0) {
@@ -288,6 +336,7 @@ try {
         $sl = $slides[$si]
         $idx = $si + 1
         $st = [string]$sl.type
+        $nextType = if (($si + 1) -lt $slides.Count) { [string]$slides[$si + 1].type } else { "" }
         Write-Host ("Building Slide {0}/{1} ({2} | 3D={3})..." -f $idx, $slides.Count, $st, $heroArch)
 
         switch ($st) {
@@ -373,14 +422,146 @@ try {
                 # Pre-stage off-canvas Morph actors for Slide 2 when Slide 2 uses horizon or depth-sandwich transitions
                 if (($si + 1) -lt $slides.Count) {
                     $nextSl = $slides[$si + 1]
-                    $nextType = [string]$nextSl.type
                     $nextGw = if ($nextSl.giant_word) { [string]$nextSl.giant_word } else { "PROJECT" }
                     if ($nextType -eq "split_horizon_3d" -and $style -ne "3d_staged") {
                         Add-Pic $s "!!SplitLower" "$AssetsDir\split_lower.png" 0 565 960 265 | Out-Null
                         Add-Text $s "!!GiantWord" $nextGw 30 -230 900 180 $DisplayFont 122 $true $cAcc1Dark 2 3 | Out-Null
                     } elseif ($nextType -eq "depth_sandwich_pan") {
                         Add-Text $s "!!pan_word" $nextGw 30 -230 900 196 $HeadingFont 136 $true $cWhite 2 3 | Out-Null
+                    } elseif ($nextType -eq "macro_dolly_3d") {
+                        for ($mi = 0; $mi -lt 3; $mi++) {
+                            Add-Pic $s "!!md_card_$mi" "$AssetsDir\card_spec_$($mi + 1).png" (-460 - $mi * 140) (142 + $mi * 116) 384 96 | Out-Null
+                        }
                     }
+                }
+            }
+
+            "portal_flythrough_3d" {
+                $stage = if ($sl.stage) { [string]$sl.stage } else { "exterior" }
+                $keep = @("!!PhoneShadow", "!!Phone3D")
+                if ($prevType -eq "portal_flythrough_3d") {
+                    $keep += @("!!portal_bg", "!!portal_inner", "!!portal_outer", "!!pt_card_next")
+                }
+                $s = Start-MorphSlide $pres $prevSlide $keep
+
+                if ($stage -eq "interior") {
+                    $pbg = Add-Pic $s "!!portal_bg" "$AssetsDir\portal_bg.png" -64 -36 1088 612; $pbg.ZOrder(1)
+                    $pout = Add-Pic $s "!!portal_outer" "$AssetsDir\portal_outer.png" -1728 -972 4416 2484; $pout.ZOrder(0)
+                    $pin = Add-Pic $s "!!portal_inner" "$AssetsDir\portal_inner.png" 0 0 960 540; $pin.ZOrder(0)
+
+                    $pcard = Add-Pic $s "!!pt_card_next" "$AssetsDir\card_bento_wide.png" 64 108 430 324; $pcard.ZOrder(0)
+                    Add-Text $s "pt_ovr" $sl.overline 88 126 382 20 $MonoFont 9.5 $true $cAcc1 1 3 | Out-Null
+                    Add-Text $s "pt_h1" $sl.headline 88 150 382 68 $DisplayFont 24 $true $cWhite 1 1 | Out-Null
+                    $pBody = if ($sl.body) { [string]$sl.body } else { [string]$sl.subtitle }
+                    Add-Text $s "pt_body" $pBody 88 224 382 92 $BodyFont 11.5 $false $cLightText 1 1 | Out-Null
+                    $kpis = @($sl.kpis); $kCols = @($cAcc1, $cAcc2)
+                    for ($ki = 0; $ki -lt [Math]::Min(2, $kpis.Count); $ki++) {
+                        Add-DarkKpiBox $s "pt_k_$ki" $kpis[$ki].value $kpis[$ki].label (88 + $ki * 194) 330 182 76 $cObsidian $kCols[$ki] $cLightText | Out-Null
+                    }
+
+                    $shP = Add-Pic $s "!!PhoneShadow" "$AssetsDir\shadow_phone.png" 526 408 348 64; $shP.ZOrder(0)
+                    Ensure-Model3D $s "!!Phone3D" $iphoneGlb 544 72 316 352 12 -20 2 | Out-Null
+                    Set-Morph $s ([single]2.1)
+                } elseif ($stage -eq "horizon") {
+                    $pbg = Add-Pic $s "!!portal_bg" "$AssetsDir\portal_bg.png" -120 -68 1200 675; $pbg.ZOrder(1)
+                    $pout = Add-Pic $s "!!portal_outer" "$AssetsDir\portal_outer.png" -1728 -972 4416 2484; $pout.ZOrder(0)
+                    $pin = Add-Pic $s "!!portal_inner" "$AssetsDir\portal_inner.png" -1536 -864 4032 2268; $pin.ZOrder(0)
+
+                    Add-Text $s "pt_ovr" $sl.overline 52 46 460 20 $MonoFont 9.5 $true $cAcc1 1 3 | Out-Null
+                    $ph1 = Add-Text $s "pt_h1" $sl.headline 52 72 460 96 $DisplayFont 32 $true $cWhite 1 1
+                    Add-TextShadow $ph1
+                    $pBody = if ($sl.body) { [string]$sl.body } else { [string]$sl.subtitle }
+                    Add-Text $s "pt_body" $pBody 52 180 440 110 $BodyFont 12.5 $false $cLightText 1 1 | Out-Null
+                    $kpis = @($sl.kpis); $kCols = @($cAcc1, $cAcc2, $cAcc3)
+                    for ($ki = 0; $ki -lt [Math]::Min(3, $kpis.Count); $ki++) {
+                        Add-DarkKpiBox $s "pt_k_$ki" $kpis[$ki].value $kpis[$ki].label (52 + $ki * 158) 396 146 78 $cObsidian $kCols[$ki] $cLightText | Out-Null
+                    }
+
+                    $shP = Add-Pic $s "!!PhoneShadow" "$AssetsDir\shadow_phone.png" 522 424 388 68; $shP.ZOrder(0)
+                    Ensure-Model3D $s "!!Phone3D" $iphoneGlb 540 58 356 384 14 24 -3 | Out-Null
+                    Set-Morph $s ([single]2.0)
+                } else {
+                    $pbg = Add-Pic $s "!!portal_bg" "$AssetsDir\portal_bg.png" 0 0 960 540; $pbg.ZOrder(1)
+                    $shP = Add-Pic $s "!!PhoneShadow" "$AssetsDir\shadow_phone.png" 380 344 200 44; $shP.ZOrder(0)
+                    Ensure-Model3D $s "!!Phone3D" $iphoneGlb 392 146 176 214 16 -28 -4 | Out-Null
+                    $pin = Add-Pic $s "!!portal_inner" "$AssetsDir\portal_inner.png" 272 102 416 336; $pin.ZOrder(0)
+                    $pout = Add-Pic $s "!!portal_outer" "$AssetsDir\portal_outer.png" 0 0 960 540; $pout.ZOrder(0)
+
+                    Add-Text $s "pt_ovr" $sl.overline 48 20 864 18 $MonoFont 9.5 $true $cAcc1 2 3 | Out-Null
+                    $ph1 = Add-Text $s "pt_h1" $sl.headline 48 40 864 42 $DisplayFont 25 $true $cWhite 2 3
+                    Add-TextShadow $ph1
+                    $meta = @($sl.meta); $mCols = @($cAcc1, $cAcc2)
+                    for ($mi = 0; $mi -lt [Math]::Min(2, $meta.Count); $mi++) {
+                        $mx = if ($mi -eq 0) { [single]34 } else { [single]720 }
+                        Add-DarkKpiBox $s "pt_m_$mi" $meta[$mi].value $meta[$mi].label $mx 204 206 112 $cObsidian $mCols[$mi] $cLightText | Out-Null
+                    }
+                    if ($sl.bottom_cue) {
+                        $cuePill = Add-CapsulePill $s "pt_cue" $sl.bottom_cue 290 480 380 34 $cObsidian ([single]0.12) $cAcc1 10 $MonoFont
+                        $cuePill.Line.Visible = -1; $cuePill.Line.ForeColor.RGB = $cBorder; $cuePill.Line.Weight = [single]1.2
+                    }
+                    if ($nextType -eq "portal_flythrough_3d") {
+                        Add-Pic $s "!!pt_card_next" "$AssetsDir\card_bento_wide.png" -520 108 430 324 | Out-Null
+                    }
+                    Set-Morph $s ([single]2.0)
+                }
+            }
+
+            "vertical_elevator_3d" {
+                $stop = if ($sl.elevator_stop) { [string]$sl.elevator_stop } else { "upper_sky" }
+                $gw = if ($sl.giant_word) { [string]$sl.giant_word } else { "ORBITAL" }
+                $keep = @("!!PhoneShadow", "!!Phone3D")
+                if ($prevType -eq "vertical_elevator_3d") {
+                    $keep += @("!!elev_bg", "!!elev_word", "!!elev_fg", "!!ev_rcard_0", "!!ev_rcard_1", "!!ev_rcard_2")
+                }
+                $s = Start-MorphSlide $pres $prevSlide $keep
+
+                if ($stop -eq "lower_ground") {
+                    $ebg = Add-Pic $s "!!elev_bg" "$AssetsDir\elev_bg.png" 0 -520 960 1080; $ebg.ZOrder(1)
+                    $ew = Add-Text $s "!!elev_word" $gw 40 290 880 170 $HeadingFont 132 $true $cWhite 2 3
+                    Add-TextShadow $ew; $ew.ZOrder(0)
+                    $efg = Add-Pic $s "!!elev_fg" "$AssetsDir\elev_fg.png" 0 -520 960 1080; $efg.ZOrder(0)
+
+                    $shP = Add-Pic $s "!!PhoneShadow" "$AssetsDir\shadow_phone.png" 46 418 356 62; $shP.ZOrder(0)
+                    Ensure-Model3D $s "!!Phone3D" $iphoneGlb 62 74 328 362 16 28 -3 | Out-Null
+
+                    Add-Text $s "ev_ovr2" $sl.overline 440 34 474 20 $MonoFont 9.5 $true $cAcc1 1 3 | Out-Null
+                    $eh2 = Add-Text $s "ev_h2" $sl.headline 440 56 474 68 $DisplayFont 25 $true $cWhite 1 1
+                    Add-TextShadow $eh2
+
+                    $cards = if ($sl.cards) { @($sl.cards) } else { @($sl.kpis) }
+                    $rCols = @($cAcc1, $cAcc2, $cAcc3)
+                    for ($ci = 0; $ci -lt [Math]::Min(3, $cards.Count); $ci++) {
+                        $cy = [single](142 + $ci * 120); $cIdx = $ci + 1; $crd = $cards[$ci]
+                        $rc = Add-Pic $s "!!ev_rcard_$ci" "$AssetsDir\card_spec_$cIdx.png" 440 $cy 474 104; $rc.ZOrder(0)
+                        $met = if ($crd.value) { [string]$crd.value } else { [string]$crd.metric }
+                        $ttl = if ($crd.title) { [string]$crd.title } else { [string]$crd.label }
+                        Add-Text $s "ev_rmet_$ci" $met 462 ($cy + 16) 128 68 $DisplayFont 28 $true $rCols[$ci] 2 3 | Out-Null
+                        Add-Text $s "ev_rttl_$ci" $ttl 598 ($cy + 16) 294 26 $DisplayFont 14 $true $cWhite 1 3 | Out-Null
+                        Add-Text $s "ev_rdsc_$ci" $crd.desc 598 ($cy + 46) 294 44 $BodyFont 11 $false $cLightText 1 1 | Out-Null
+                    }
+                    Set-Morph $s ([single]2.2)
+                } else {
+                    $ebg = Add-Pic $s "!!elev_bg" "$AssetsDir\elev_bg.png" 0 0 960 1080; $ebg.ZOrder(1)
+                    $ew = Add-Text $s "!!elev_word" $gw 40 94 880 156 $HeadingFont 132 $true $cWhite 2 3
+                    Add-TextShadow $ew; $ew.ZOrder(0)
+                    $efg = Add-Pic $s "!!elev_fg" "$AssetsDir\elev_fg.png" 0 0 960 1080; $efg.ZOrder(0)
+
+                    $ep = Add-Pic $s "ev_panel" "$AssetsDir\card_bento_wide.png" 46 250 468 242; $ep.ZOrder(0)
+                    Add-Text $s "ev_ovr" $sl.overline 72 268 416 18 $MonoFont 9.5 $true $cAcc1 1 3 | Out-Null
+                    Add-Text $s "ev_h1" $sl.headline 72 292 416 62 $DisplayFont 22 $true $cWhite 1 1 | Out-Null
+                    Add-Text $s "ev_body" $sl.body 72 358 416 76 $BodyFont 11.5 $false $cLightText 1 1 | Out-Null
+                    if ($sl.badge) { Add-CapsulePill $s "ev_badge" $sl.badge 72 444 198 28 $cAcc1 0 $cWhite 9.5 $MonoFont | Out-Null }
+
+                    $shP = Add-Pic $s "!!PhoneShadow" "$AssetsDir\shadow_phone.png" 548 412 356 62; $shP.ZOrder(0)
+                    Ensure-Model3D $s "!!Phone3D" $iphoneGlb 564 68 326 360 10 -22 3 | Out-Null
+
+                    if ($nextType -eq "vertical_elevator_3d") {
+                        for ($ci = 0; $ci -lt 3; $ci++) {
+                            $ox = [single](1080 + $ci * 160); $cy = [single](142 + $ci * 120); $cIdx = $ci + 1
+                            Add-Pic $s "!!ev_rcard_$ci" "$AssetsDir\card_spec_$cIdx.png" $ox $cy 474 104 | Out-Null
+                        }
+                    }
+                    Set-Morph $s ([single]2.1)
                 }
             }
 
@@ -408,7 +589,7 @@ try {
                 }
 
                 $pbg = Add-Pic $s "!!pan_bg" "$AssetsDir\s$idx`_pan_bg.png" $bx $by $bw $bh; $pbg.ZOrder(1)
-                $pw  = Add-Text $s "!!pan_word" ([string]$sl.giant_word) $wx $wy $ww $wh $HeadingFont $wSize $true $cWhite $wAlign 3; $pw.ZOrder(0)
+                $pw  = Add-Text $s "!!pan_word" ([string]$sl.giant_word) $wx $wy $ww $wh $HeadingFont $wSize $true $cWhite $wAlign 3; Add-TextShadow $pw; $pw.ZOrder(0)
                 $fgPath = "$AssetsDir\s$idx`_pan_fg.png"
                 if (Test-Path $fgPath) { $pfg = Add-Pic $s "!!pan_fg" $fgPath $bx $by $bw $bh; $pfg.ZOrder(0) }
 
@@ -423,7 +604,7 @@ try {
             }
 
             "macro_dolly_3d" {
-                $keep = @("!!PhoneShadow", "!!Phone3D")
+                $keep = @("!!PhoneShadow", "!!Phone3D", "!!md_card_0", "!!md_card_1", "!!md_card_2")
                 if ($prevType -eq "split_horizon_3d") { $keep += @("!!SplitLower", "!!GiantWord") }
                 $s = Start-MorphSlide $pres $prevSlide $keep
                 Add-Bg $s "$AssetsDir\bg_alt.png" | Out-Null
@@ -440,7 +621,7 @@ try {
                 $cYs = @(142, 258, 374); $cCols = @($cAcc1, $cAcc2, $cAcc3)
                 for ($ci = 0; $ci -lt [Math]::Min(3, $callouts.Count); $ci++) {
                     $cy = [single]$cYs[$ci]; $cIdx = $ci + 1; $ac = $cCols[$ci]
-                    Add-Pic $s "md_card_$ci" "$AssetsDir\card_spec_$cIdx.png" 46 $cy 384 96 | Out-Null
+                    $mc = Add-Pic $s "!!md_card_$ci" "$AssetsDir\card_spec_$cIdx.png" 46 $cy 384 96; $mc.ZOrder(0)
                     Add-Text $s "md_ttl_$ci" $callouts[$ci].title 68 ($cy + 14) 344 22 $DisplayFont 13 $true $ac 1 3 | Out-Null
                     Add-Text $s "md_dsc_$ci" $callouts[$ci].desc 68 ($cy + 40) 344 46 $BodyFont 11 $false $cLightText 1 1 | Out-Null
                     Add-Rect $s "md_line_$ci" 430 ($cy + 46) 96 ([single]2.0) $ac 0 -1 0 0 | Out-Null
@@ -759,16 +940,54 @@ try {
 
                 $keep = @("!!PhoneShadow", "!!Phone3D")
                 if ($prevType -eq "spotlight_dock") {
-                    $keep += @("bg_slide", "!!GlassDock", "!!DockGlider", "!!DockThumb1", "!!DockThumb2", "!!DockThumb3", "!!DockThumb4", "!!DockLbl1", "!!DockLbl2", "!!DockLbl3", "!!DockLbl4", "!!DockSub1", "!!DockSub2", "!!DockSub3", "!!DockSub4")
+                    $prevIdx = $idx - 1
+                    $keep += @(
+                        "!!sp_bg_$idx", "!!sp_dot_0", "!!sp_dot_1",
+                        "!!sp_tag_$prevIdx", "!!sp_title_$prevIdx", "!!sp_sub_$prevIdx", "!!sp_body_$prevIdx",
+                        "!!sp_tag_$idx", "!!sp_title_$idx", "!!sp_sub_$idx", "!!sp_body_$idx",
+                        "!!GlassDock", "!!DockGlider",
+                        "!!DockThumb1", "!!DockThumb2", "!!DockThumb3", "!!DockThumb4",
+                        "!!DockLbl1", "!!DockLbl2", "!!DockLbl3", "!!DockLbl4",
+                        "!!DockSub1", "!!DockSub2", "!!DockSub3", "!!DockSub4"
+                    )
                 }
                 $s = Start-MorphSlide $pres $prevSlide $keep
-                Add-Bg $s "$AssetsDir\s$idx`_bg.png" | Out-Null
+
+                $curBg = Add-Pic $s "!!sp_bg_$idx" "$AssetsDir\s$idx`_bg.png" 0 0 960 540
+                $curBg.ZOrder(1)
+
+                # Orthogonal L-trajectory upward exit for previous spotlight text actors
+                if ($prevType -eq "spotlight_dock") {
+                    $prevIdx = $idx - 1
+                    foreach ($pair in @(@("!!sp_tag_$prevIdx", -280), @("!!sp_title_$prevIdx", -240), @("!!sp_sub_$prevIdx", -180), @("!!sp_body_$prevIdx", -140))) {
+                        $osh = Find-Shape $s $pair[0]
+                        if ($null -ne $osh) { $osh.Top = [single]$pair[1] }
+                    }
+                }
+
+                # Pre-stage incoming spotlight background with liquid vertical srcRect curtain wipe & staggered X text cascade
+                if ($nextType -eq "spotlight_dock") {
+                    $nextIdx = $idx + 1
+                    $nbg = Add-Pic $s "!!sp_bg_$nextIdx" "$AssetsDir\s$nextIdx`_bg.png" 0 0 960 540
+                    try {
+                        $nbg.PictureFormat.CropTop = [single](-360)
+                        $nbg.PictureFormat.CropBottom = [single]360
+                        $nbg.Left = [single]0; $nbg.Top = [single]0; $nbg.Width = [single]960; $nbg.Height = [single]540
+                    } catch {}
+                    $nbg.ZOrder(1)
+                    $nxSp = $slides[$si + 1].spotlight
+                    Add-Text $s "!!sp_tag_$nextIdx" $nxSp.tag -460 48 540 20 $MonoFont 10 $true $cAcc1 1 3 | Out-Null
+                    Add-Text $s "!!sp_title_$nextIdx" $nxSp.title -560 74 550 64 $DisplayFont 42 $true $cWhite 1 1 | Out-Null
+                    Add-Text $s "!!sp_sub_$nextIdx" $nxSp.subtitle -680 142 560 26 $SemiFont 13 $false $cAcc3 1 3 | Out-Null
+                    Add-Text $s "!!sp_body_$nextIdx" $nxSp.body -800 180 520 112 $BodyFont 13.5 $false $cLightText 1 1 | Out-Null
+                }
 
                 $sp = $sl.spotlight
-                Add-Text $s "sp_tag" $sp.tag 50 48 540 20 $MonoFont 10 $true $cAcc1 1 3 | Out-Null
-                Add-Text $s "sp_title" $sp.title 50 74 550 64 $DisplayFont 42 $true $cWhite 1 1 | Out-Null
-                Add-Text $s "sp_sub" $sp.subtitle 50 142 560 26 $SemiFont 13 $false $cAcc3 1 3 | Out-Null
-                Add-Text $s "sp_body" $sp.body 50 180 520 112 $BodyFont 13.5 $false $cLightText 1 1 | Out-Null
+                Add-Text $s "!!sp_tag_$idx" $sp.tag 50 48 540 20 $MonoFont 10 $true $cAcc1 1 3 | Out-Null
+                $spTitle = Add-Text $s "!!sp_title_$idx" $sp.title 50 74 550 64 $DisplayFont 42 $true $cWhite 1 1
+                Add-TextShadow $spTitle
+                Add-Text $s "!!sp_sub_$idx" $sp.subtitle 50 142 560 26 $SemiFont 13 $false $cAcc3 1 3 | Out-Null
+                Add-Text $s "!!sp_body_$idx" $sp.body 50 180 520 112 $BodyFont 13.5 $false $cLightText 1 1 | Out-Null
 
                 if (-not $isPhoneHero -or [bool]$sl.show_3d) {
                     $rySp = if ($dockIdx % 2 -eq 0) { [single]-16 } else { [single]22 }
@@ -781,27 +1000,38 @@ try {
                     Ensure-Model3D $s "!!Phone3D" $iphoneGlb -340 60 $heroW $heroH 4 95 0 | Out-Null
                 }
 
-                Add-Pic $s "!!GlassDock" "$AssetsDir\dock_bg.png" 40 386 880 128 | Out-Null
-                Add-Pic $s "!!DockGlider" "$AssetsDir\dock_glider.png" $curGliderX 396 208 108 | Out-Null
+                $refractDock = "$AssetsDir\s$idx`_dock_refract.png"
+                $dockImgPath = if (Test-Path $refractDock) { $refractDock } else { "$AssetsDir\dock_bg.png" }
+                $gdSh = Find-Shape $s "!!GlassDock"
+                if ($null -ne $gdSh) { $gdSh.Delete() }
+                $gdSh = Add-Pic $s "!!GlassDock" $dockImgPath 40 386 880 128
+                $gld = Add-Pic $s "!!DockGlider" "$AssetsDir\dock_glider.png" $curGliderX 396 208 108; $gld.ZOrder(0)
 
                 $dockItems = if ($sl.dock) { @($sl.dock) } else { @($spec.dock) }
                 for ($di = 0; $di -lt 4; $di++) {
                     $item = if ($di -lt $dockItems.Count) { $dockItems[$di] } else { @{ title = "Item $($di+1)"; subtitle = "" } }
                     $dnum = $di + 1; $dx = $dockXs[$di]
-                    Add-Pic $s "!!DockThumb$dnum" "$AssetsDir\thumb_$dnum.png" $dx 416 76 60 | Out-Null
-                    Add-Text $s "!!DockLbl$dnum" $item.title ($dx + 84) 418 110 24 $DisplayFont 13 $true $cWhite 1 3 | Out-Null
-                    Add-Text $s "!!DockSub$dnum" $item.subtitle ($dx + 84) 444 110 22 $BodyFont 11 $false $cMuted 1 1 | Out-Null
+                    $th = Add-Pic $s "!!DockThumb$dnum" "$AssetsDir\thumb_$dnum.png" $dx 416 76 60; $th.ZOrder(0)
+                    $tl = Add-Text $s "!!DockLbl$dnum" $item.title ($dx + 84) 418 110 24 $DisplayFont 13 $true $cWhite 1 3; $tl.ZOrder(0)
+                    $ts = Add-Text $s "!!DockSub$dnum" $item.subtitle ($dx + 84) 444 110 22 $BodyFont 11 $false $cMuted 1 1; $ts.ZOrder(0)
                 }
 
                 for ($pi = 0; $pi -lt 2; $pi++) {
                     $isAct = ($pi -eq ($dockIdx % 2))
                     $dy = [single](222 + $pi * 24)
-                    $dw = if ($isAct) { [single]12 } else { [single]8 }
-                    $dxp = if ($isAct) { [single]932 } else { [single]934 }
-                    $dot = $s.Shapes.AddShape(9, $dxp, $dy, $dw, $dw)
-                    $dot.Name = "sp_dot_$pi"; $dot.Fill.Solid()
+                    $dw = if ($isAct) { [single]14 } else { [single]7 }
+                    $dxp = if ($isAct) { [single]930 } else { [single]933.5 }
+                    $dot = Find-Shape $s "!!sp_dot_$pi"
+                    if ($null -eq $dot) {
+                        $dot = $s.Shapes.AddShape(9, $dxp, $dy, $dw, $dw)
+                        $dot.Name = "!!sp_dot_$pi"
+                    } else {
+                        $dot.Left = $dxp; $dot.Top = $dy; $dot.Width = $dw; $dot.Height = $dw
+                    }
+                    $dot.Fill.Solid()
                     $dot.Fill.ForeColor.RGB = if ($isAct) { $cAcc1 } else { $cMuted }
                     $dot.Line.Visible = 0
+                    $dot.ZOrder(0)
                 }
                 Set-Morph $s ([single]2.0)
             }
@@ -1029,6 +1259,13 @@ try {
             }
         }
 
+        # Pre-stage staggered off-canvas callouts/tiles when next slide uses macro_dolly_3d or kpi_bento
+        if ($nextType -eq "macro_dolly_3d" -and $st -ne "cover_hero") {
+            for ($mi = 0; $mi -lt 3; $mi++) {
+                Add-Pic $s "!!md_card_$mi" "$AssetsDir\card_spec_$($mi + 1).png" (-460 - $mi * 140) (142 + $mi * 116) 384 96 | Out-Null
+            }
+        }
+
         $prevSlide = $s
         $prevType  = $st
     }
@@ -1037,14 +1274,16 @@ try {
     $pres.SaveAs($OutputPptx)
     Write-Host ("Saved deck cleanly -> " + $OutputPptx)
 
-    for ($i = 1; $i -le $pres.Slides.Count; $i++) {
-        $pngPath = Join-Path $ExportDir "slide_$i.png"
-        $pres.Slides.Item($i).Export($pngPath, "PNG", 1920, 1080)
-        Write-Host "Exported slide $i -> $pngPath"
-    }
-    if (-not [string]::IsNullOrWhiteSpace($CopyTo)) {
-        Copy-Item -Path $OutputPptx -Destination $CopyTo -Force
-        Write-Host ("Copied deck -> " + $CopyTo)
+    if (-not $SkipExport) {
+        for ($i = 1; $i -le $pres.Slides.Count; $i++) {
+            $pngPath = Join-Path $ExportDir "slide_$i.png"
+            $pres.Slides.Item($i).Export($pngPath, "PNG", 1920, 1080)
+            Write-Host "Exported slide $i -> $pngPath"
+        }
+        if (-not [string]::IsNullOrWhiteSpace($CopyTo)) {
+            Copy-Item -Path $OutputPptx -Destination $CopyTo -Force
+            Write-Host ("Copied deck -> " + $CopyTo)
+        }
     }
 } finally {
     if ($null -ne $pres) { try { $pres.Close() } catch {} }

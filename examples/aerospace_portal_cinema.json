@@ -1,0 +1,89 @@
+{
+  "schema_version": 2,
+  "theme": "obsidian_kinetic",
+  "brand": {
+    "name": "Aetherion Orbital",
+    "title_part1": "AETHERION",
+    "title_part2": " ORBITAL",
+    "tagline": "Reusable orbital transfer vehicle engineered for rapid satellite constellation servicing",
+    "monogram": "AO",
+    "logo_path": ""
+  },
+  "palette": {
+    "accent1": "#F97316",
+    "accent2": "#38BDF8",
+    "accent3": "#EAB308"
+  },
+  "hero_3d": {
+    "archetype": "aerospace_orbital_craft"
+  },
+  "assets": {},
+  "slides": [
+    {
+      "type": "portal_flythrough_3d",
+      "stage": "exterior",
+      "overline": "FLIGHT READINESS BRIEF  //  VEHICLE SERIES 04",
+      "headline": "ENTER THE ORBITAL BAY",
+      "meta": [
+        { "value": "3.4 km/s", "label": "DELTA-V BUDGET" },
+        { "value": "1,400 kg", "label": "PAYLOAD BAY" }
+      ],
+      "bottom_cue": "TELEMETRY LOCKED  |  APERTURE STAGE 01"
+    },
+    {
+      "type": "portal_flythrough_3d",
+      "stage": "interior",
+      "overline": "01  /  PROPULSION & BAY DEPLOYMENT",
+      "headline": "Autonomous multi-orbit tug inside an integrated airframe",
+      "body": "After optical aperture ingress, the orbital craft repositions payloads across LEO, MEO, and sun-synchronous inclinations using throttled plasma thrusters.",
+      "kpis": [
+        { "value": "14 days", "label": "ORBITAL PHASING" },
+        { "value": "99.94%", "label": "RENDEZVOUS LOCK" }
+      ]
+    },
+    {
+      "type": "vertical_elevator_3d",
+      "elevator_stop": "upper_sky",
+      "giant_word": "ORBITAL",
+      "overline": "02  /  UPPER ATMOSPHERE ASCENT",
+      "headline": "Clean hypersonic staging above dense atmospheric drag",
+      "body": "Triple plasma thruster bells ignite at 140 km altitude while optical star trackers hold sub-arcsecond inertial attitude lock.",
+      "badge": "ALTITUDE 140 KM  |  MACH 18"
+    },
+    {
+      "type": "vertical_elevator_3d",
+      "elevator_stop": "lower_ground",
+      "giant_word": "ORBITAL",
+      "overline": "03  /  GROUND RECOVERY & TURNAROUND",
+      "headline": "Precision autonomous recovery for rapid 72-hour reuse cycles",
+      "cards": [
+        { "value": "72 hrs", "label": "TURNAROUND", "desc": "Modular avionics bay and quick-mate plasma propellant umbilicals." },
+        { "value": "-62%", "label": "COST PER KG", "desc": "Shared orbital servicing across up to 8 microsatellite manifests." },
+        { "value": "24/7", "label": "FLIGHTOPS", "desc": "Continuous Ka-band telemetry downlinks across 12 ground stations." }
+      ]
+    },
+    {
+      "type": "macro_dolly_3d",
+      "overline": "04  /  AIRFRAME SUBSYSTEM CLOSE-UP",
+      "headline": "1.55x tactical hardware inspection across flight assemblies",
+      "callouts": [
+        { "title": "Cryo Composite Fairing", "desc": "Thermal shield protects secondary hosted optics across 1,600 K reentry peaks." },
+        { "title": "Swept Delta Aero Fins", "desc": "Four titanium control surfaces stabilize supersonic cross-range gliding." },
+        { "title": "Tri-Nozzle Plasma Array", "desc": "Gimbaled Hall-effect bells deliver continuous orbit-raising impulse." }
+      ]
+    },
+    {
+      "type": "closing_finale",
+      "style": "editorial_statement",
+      "overline": "AETHERION ORBITAL  //  MANIFEST Q4",
+      "headline": "Reserve your hosted payload slot in low Earth orbit.",
+      "summary": "Standardized ESPA separation ring interfaces with turnkey ground telemetry integration and flight qualification review.",
+      "cta": "BOOK LAUNCH MANIFEST",
+      "metrics": [
+        { "value": "3.4 km/s", "label": "DELTA-V" },
+        { "value": "1,400 kg", "label": "CAPACITY" },
+        { "value": "72 hrs", "label": "TURNAROUND" }
+      ]
+    }
+  ]
+}

@@ -186,6 +186,7 @@ def build_crossplatform_pptx(spec_json: str, assets_dir: str, out_pptx: str) -> 
     c_ink_mid = RGBColor(30, 41, 59)
 
     hero_arch = spec.get("hero_3d", {}).get("archetype", "ai_quantum_server")
+    theme_name = spec.get("theme", "obsidian_kinetic")
     is_phone = hero_arch in ("iphone", "smartphone_pro")
     hero_w, hero_h = (224, 448) if is_phone else (296, 320)
 
@@ -198,7 +199,7 @@ def build_crossplatform_pptx(spec_json: str, assets_dir: str, out_pptx: str) -> 
         key = (glb_path, round(rx, 1), round(ry, 1), round(rz, 1))
         if key not in pose_cache:
             out_p = os.path.join(assets_dir, f"_pose_{tag}.png")
-            render_glb_to_image(glb_path, res, res, rx, ry, rz).save(out_p, "PNG")
+            render_glb_to_image(glb_path, res, res, rx, ry, rz, theme=theme_name).save(out_p, "PNG")
             pose_cache[key] = out_p
         return pose_cache[key]
 
@@ -213,6 +214,8 @@ def build_crossplatform_pptx(spec_json: str, assets_dir: str, out_pptx: str) -> 
     for idx, sl in enumerate(slides, start=1):
         s = prs.slides.add_slide(blank)
         st = sl.get("type", "cover_hero")
+        prev_st = slides[idx - 2].get("type", "") if idx >= 2 else ""
+        next_st = slides[idx].get("type", "") if idx < len(slides) else ""
 
         if st == "cover_hero":
             style = sl.get("style", "centered_clean")
@@ -271,6 +274,88 @@ def build_crossplatform_pptx(spec_json: str, assets_dir: str, out_pptx: str) -> 
                 add_kpi_box(s, f"s2_k{ki}", k.get("value", ""), k.get("label", ""), kpi_xs[ki], 396, 144, 78, c_obs, kpi_cols[ki], c_light, f_disp, f_semi)
             add_pic(s, "!!PhoneShadow", os.path.join(assets_dir, "shadow_phone.png"), 324, 472, 312, 62)
             add_pic(s, "!!Phone3D", pose_png(hero_glb, f"s{idx}", 8, 12, 0), 480 - hero_w / 2, 116 if not is_phone else 60, hero_w, 330)
+
+        elif st == "portal_flythrough_3d":
+            stage = sl.get("stage", "exterior")
+            portal_bg = os.path.join(assets_dir, "portal_bg.png")
+            portal_in = os.path.join(assets_dir, "portal_inner.png")
+            portal_out = os.path.join(assets_dir, "portal_outer.png")
+            if stage == "interior":
+                add_pic(s, "!!portal_bg", portal_bg, -64, -36, 1088, 612)
+                add_pic(s, "!!portal_outer", portal_out, -1728, -972, 4416, 2484)
+                add_pic(s, "!!portal_inner", portal_in, 0, 0, 960, 540)
+                add_pic(s, "!!PhoneShadow", os.path.join(assets_dir, "shadow_phone.png"), 526, 408, 348, 64)
+                add_pic(s, "!!Phone3D", pose_png(hero_glb, f"s{idx}", 12, -20, 2, res=760), 544, 72, 316, 352)
+                add_pic(s, "!!pt_card_next", os.path.join(assets_dir, "card_bento_wide.png"), 64, 108, 430, 324)
+                add_text(s, "pt_ovr", sl.get("overline", ""), 88, 126, 382, 20, f_mono, 9.5, True, c_acc1)
+                add_text(s, "pt_h1", sl.get("headline", ""), 88, 150, 382, 68, f_disp, 24, True, c_white)
+                add_text(s, "pt_body", sl.get("body", sl.get("subtitle", "")), 88, 224, 382, 92, f_body, 11.5, False, c_light)
+                for ki, k in enumerate(sl.get("kpis", [])[:2]):
+                    add_kpi_box(s, f"pt_k_{ki}", k.get("value", ""), k.get("label", ""), 88 + ki * 194, 330, 182, 76, c_obs, c_acc1 if ki == 0 else c_acc2, c_light, f_disp, f_semi)
+            elif stage == "horizon":
+                add_pic(s, "!!portal_bg", portal_bg, -120, -68, 1200, 675)
+                add_pic(s, "!!portal_outer", portal_out, -1728, -972, 4416, 2484)
+                add_pic(s, "!!portal_inner", portal_in, -1536, -864, 4032, 2268)
+                add_pic(s, "!!PhoneShadow", os.path.join(assets_dir, "shadow_phone.png"), 522, 424, 388, 68)
+                add_pic(s, "!!Phone3D", pose_png(hero_glb, f"s{idx}", 14, 24, -3, res=760), 540, 58, 356, 384)
+                add_text(s, "pt_ovr", sl.get("overline", ""), 52, 46, 460, 20, f_mono, 9.5, True, c_acc1)
+                add_text(s, "pt_h1", sl.get("headline", ""), 52, 72, 460, 96, f_disp, 32, True, c_white)
+                add_text(s, "pt_body", sl.get("body", sl.get("subtitle", "")), 52, 180, 440, 110, f_body, 12.5, False, c_light)
+                kcols = [c_acc1, c_acc2, c_acc3]
+                for ki, k in enumerate(sl.get("kpis", [])[:3]):
+                    add_kpi_box(s, f"pt_k_{ki}", k.get("value", ""), k.get("label", ""), 52 + ki * 158, 396, 146, 78, c_obs, kcols[ki], c_light, f_disp, f_semi)
+            else:
+                add_pic(s, "!!portal_bg", portal_bg, 0, 0, 960, 540)
+                add_pic(s, "!!PhoneShadow", os.path.join(assets_dir, "shadow_phone.png"), 380, 344, 200, 44)
+                add_pic(s, "!!Phone3D", pose_png(hero_glb, f"s{idx}", 16, -28, -4), 392, 146, 176, 214)
+                add_pic(s, "!!portal_inner", portal_in, 272, 102, 416, 336)
+                add_pic(s, "!!portal_outer", portal_out, 0, 0, 960, 540)
+                add_text(s, "pt_ovr", sl.get("overline", ""), 48, 20, 864, 18, f_mono, 9.5, True, c_acc1, PP_ALIGN.CENTER)
+                add_text(s, "pt_h1", sl.get("headline", ""), 48, 40, 864, 42, f_disp, 25, True, c_white, PP_ALIGN.CENTER)
+                for mi, mt in enumerate(sl.get("meta", [])[:2]):
+                    mx = 34 if mi == 0 else 720
+                    add_kpi_box(s, f"pt_m_{mi}", mt.get("value", ""), mt.get("label", ""), mx, 204, 206, 112, c_obs, c_acc1 if mi == 0 else c_acc2, c_light, f_disp, f_semi)
+                if sl.get("bottom_cue"):
+                    add_pill(s, "pt_cue", sl["bottom_cue"], 290, 480, 380, 34, c_obs, c_acc1, 10, f_mono)
+                if next_st == "portal_flythrough_3d":
+                    add_pic(s, "!!pt_card_next", os.path.join(assets_dir, "card_bento_wide.png"), -520, 108, 430, 324)
+
+        elif st == "vertical_elevator_3d":
+            stop = sl.get("elevator_stop", "upper_sky")
+            elev_bg = os.path.join(assets_dir, "elev_bg.png")
+            elev_fg = os.path.join(assets_dir, "elev_fg.png")
+            gw = sl.get("giant_word", "ORBITAL")
+            if stop == "lower_ground":
+                add_pic(s, "!!elev_bg", elev_bg, 0, -520, 960, 1080)
+                add_text(s, "!!elev_word", gw, 40, 290, 880, 170, f_head, 126, True, c_white, PP_ALIGN.CENTER, MSO_ANCHOR.MIDDLE)
+                add_pic(s, "!!elev_fg", elev_fg, 0, -520, 960, 1080)
+                add_pic(s, "!!PhoneShadow", os.path.join(assets_dir, "shadow_phone.png"), 46, 418, 356, 62)
+                add_pic(s, "!!Phone3D", pose_png(hero_glb, f"s{idx}", 16, 28, -3, res=760), 62, 74, 328, 362)
+                add_text(s, "ev_ovr2", sl.get("overline", ""), 440, 34, 474, 20, f_mono, 9.5, True, c_acc1)
+                add_text(s, "ev_h2", sl.get("headline", ""), 440, 56, 474, 68, f_disp, 25, True, c_white)
+                cards = sl.get("cards") or sl.get("kpis") or []
+                cols = [c_acc1, c_acc2, c_acc3]
+                for ci, crd in enumerate(cards[:3]):
+                    cy = 142 + ci * 120
+                    add_pic(s, f"!!ev_rcard_{ci}", os.path.join(assets_dir, f"card_spec_{ci + 1}.png"), 440, cy, 474, 104)
+                    add_text(s, f"ev_rmet_{ci}", crd.get("value", crd.get("metric", "")), 462, cy + 16, 128, 68, f_disp, 28, True, cols[ci], PP_ALIGN.CENTER, MSO_ANCHOR.MIDDLE)
+                    add_text(s, f"ev_rttl_{ci}", crd.get("title", crd.get("label", "")), 598, cy + 16, 294, 26, f_disp, 14, True, c_white)
+                    add_text(s, f"ev_rdsc_{ci}", crd.get("desc", ""), 598, cy + 46, 294, 44, f_body, 11, False, c_light)
+            else:
+                add_pic(s, "!!elev_bg", elev_bg, 0, 0, 960, 1080)
+                add_text(s, "!!elev_word", gw, 40, 94, 880, 156, f_head, 126, True, c_white, PP_ALIGN.CENTER, MSO_ANCHOR.MIDDLE)
+                add_pic(s, "!!elev_fg", elev_fg, 0, 0, 960, 1080)
+                add_pic(s, "!!PhoneShadow", os.path.join(assets_dir, "shadow_phone.png"), 548, 412, 356, 62)
+                add_pic(s, "!!Phone3D", pose_png(hero_glb, f"s{idx}", 10, -22, 3, res=760), 564, 68, 326, 360)
+                add_pic(s, "ev_panel", os.path.join(assets_dir, "card_bento_wide.png"), 46, 250, 468, 242)
+                add_text(s, "ev_ovr", sl.get("overline", ""), 72, 268, 416, 18, f_mono, 9.5, True, c_acc1)
+                add_text(s, "ev_h1", sl.get("headline", ""), 72, 292, 416, 62, f_disp, 22, True, c_white)
+                add_text(s, "ev_body", sl.get("body", ""), 72, 358, 416, 76, f_body, 11.5, False, c_light)
+                if sl.get("badge"):
+                    add_pill(s, "ev_badge", sl["badge"], 72, 444, 198, 28, c_acc1, c_white, 9.5, f_mono)
+                if next_st == "vertical_elevator_3d":
+                    for ci, ox in enumerate([1080, 1240, 1400]):
+                        add_pic(s, f"!!ev_rcard_{ci}", os.path.join(assets_dir, f"card_spec_{ci + 1}.png"), ox, 142 + ci * 120, 474, 104)
 
         elif st == "depth_sandwich_pan":
             pan_state = sl.get("pan_state", "wide")
@@ -484,12 +569,29 @@ def build_crossplatform_pptx(spec_json: str, assets_dir: str, out_pptx: str) -> 
             d_idx = int(sl.get("dock_index", 0))
             dock_xs = [66, 282, 498, 714]
             glider_xs = [54, 270, 486, 702]
-            add_pic(s, "bg_slide", os.path.join(assets_dir, f"s{idx}_bg.png"), 0, 0, 960, 540)
+            if next_st == "spotlight_dock":
+                nbg = add_pic(s, f"!!sp_bg_{idx + 1}", os.path.join(assets_dir, f"s{idx + 1}_bg.png"), 0, 0, 960, 540)
+                if nbg is not None:
+                    nbg.crop_top = -0.95
+                    nbg.crop_bottom = 0.95
+            add_pic(s, f"!!sp_bg_{idx}", os.path.join(assets_dir, f"s{idx}_bg.png"), 0, 0, 960, 540)
+            if prev_st == "spotlight_dock":
+                prev_sp = slides[idx - 2].get("spotlight", {})
+                add_text(s, f"!!sp_tag_{idx - 1}", prev_sp.get("tag", ""), 50, -280, 540, 20, f_mono, 10, True, c_acc1)
+                add_text(s, f"!!sp_title_{idx - 1}", prev_sp.get("title", ""), 50, -240, 550, 64, f_disp, 42, True, c_white)
+                add_text(s, f"!!sp_sub_{idx - 1}", prev_sp.get("subtitle", ""), 50, -180, 560, 26, f_semi, 13, False, c_acc3)
+                add_text(s, f"!!sp_body_{idx - 1}", prev_sp.get("body", ""), 50, -140, 520, 112, f_body, 13.5, False, c_light)
             sp = sl.get("spotlight", {})
-            add_text(s, "sp_tag", sp.get("tag", ""), 50, 48, 540, 20, f_mono, 10, True, c_acc1)
-            add_text(s, "sp_title", sp.get("title", ""), 50, 74, 550, 64, f_disp, 42, True, c_white)
-            add_text(s, "sp_sub", sp.get("subtitle", ""), 50, 142, 560, 26, f_semi, 13, False, c_acc3)
-            add_text(s, "sp_body", sp.get("body", ""), 50, 180, 520, 112, f_body, 13.5, False, c_light)
+            add_text(s, f"!!sp_tag_{idx}", sp.get("tag", ""), 50, 48, 540, 20, f_mono, 10, True, c_acc1)
+            add_text(s, f"!!sp_title_{idx}", sp.get("title", ""), 50, 74, 550, 64, f_disp, 42, True, c_white)
+            add_text(s, f"!!sp_sub_{idx}", sp.get("subtitle", ""), 50, 142, 560, 26, f_semi, 13, False, c_acc3)
+            add_text(s, f"!!sp_body_{idx}", sp.get("body", ""), 50, 180, 520, 112, f_body, 13.5, False, c_light)
+            if next_st == "spotlight_dock":
+                nx_sp = slides[idx].get("spotlight", {})
+                add_text(s, f"!!sp_tag_{idx + 1}", nx_sp.get("tag", ""), -460, 48, 540, 20, f_mono, 10, True, c_acc1)
+                add_text(s, f"!!sp_title_{idx + 1}", nx_sp.get("title", ""), -560, 74, 550, 64, f_disp, 42, True, c_white)
+                add_text(s, f"!!sp_sub_{idx + 1}", nx_sp.get("subtitle", ""), -680, 142, 560, 26, f_semi, 13, False, c_acc3)
+                add_text(s, f"!!sp_body_{idx + 1}", nx_sp.get("body", ""), -800, 180, 520, 112, f_body, 13.5, False, c_light)
             if not is_phone or sl.get("show_3d"):
                 ry_sp = -16 if d_idx % 2 == 0 else 22
                 add_pic(s, "!!PhoneShadow", os.path.join(assets_dir, "shadow_phone.png"), 644, 304, 268, 46)
@@ -498,7 +600,9 @@ def build_crossplatform_pptx(spec_json: str, assets_dir: str, out_pptx: str) -> 
                     add_pill(s, "sp_bdg", sp["badge"], 686, 328, 184, 30, c_obs, c_acc3, 9.5, f_mono)
             else:
                 add_pic(s, "sp_port", os.path.join(assets_dir, f"s{idx}_portrait.png"), 656, 36, 244, 282)
-            add_pic(s, "!!GlassDock", os.path.join(assets_dir, "dock_bg.png"), 40, 386, 880, 128)
+            refract_dock = os.path.join(assets_dir, f"s{idx}_dock_refract.png")
+            dock_img = refract_dock if os.path.exists(refract_dock) else os.path.join(assets_dir, "dock_bg.png")
+            add_pic(s, "!!GlassDock", dock_img, 40, 386, 880, 128)
             add_pic(s, "!!DockGlider", os.path.join(assets_dir, "dock_glider.png"), glider_xs[min(3, max(0, d_idx))], 396, 208, 108)
             dock_items = sl.get("dock") or spec.get("dock", [])
             for di in range(4):
@@ -507,6 +611,15 @@ def build_crossplatform_pptx(spec_json: str, assets_dir: str, out_pptx: str) -> 
                 add_pic(s, f"!!DockThumb{di + 1}", os.path.join(assets_dir, f"thumb_{di + 1}.png"), dx, 416, 76, 60)
                 add_text(s, f"!!DockLbl{di + 1}", it.get("title", ""), dx + 84, 418, 110, 24, f_disp, 13, True, c_white)
                 add_text(s, f"!!DockSub{di + 1}", it.get("subtitle", ""), dx + 84, 444, 110, 22, f_body, 11, False, c_muted)
+            for pi in range(2):
+                is_act = (pi == (d_idx % 2))
+                dw = 14 if is_act else 7
+                dxp = 930 if is_act else 933.5
+                dot = s.shapes.add_shape(MSO_SHAPE.OVAL, Pt(dxp), Pt(222 + pi * 24), Pt(dw), Pt(dw))
+                dot.name = f"!!sp_dot_{pi}"
+                dot.fill.solid()
+                dot.fill.fore_color.rgb = c_acc1 if is_act else c_muted
+                dot.line.fill.background()
 
         elif st == "macbook_studio_3d":
             add_pic(s, "bg_slide", os.path.join(assets_dir, "bg_alt.png"), 0, 0, 960, 540)

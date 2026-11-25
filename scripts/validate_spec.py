@@ -43,6 +43,8 @@ VALID_ARCHETYPES = {
 
 VALID_SLIDE_TYPES = {
     "cover_hero",
+    "portal_flythrough_3d",
+    "vertical_elevator_3d",
     "split_horizon_3d",
     "macro_dolly_3d",
     "depth_sandwich_pan",
@@ -60,6 +62,9 @@ VALID_SLIDE_TYPES = {
     "full_bleed_visual",
     "closing_finale",
 }
+
+VALID_PORTAL_STAGES = {"exterior", "interior", "horizon"}
+VALID_ELEVATOR_STOPS = {"upper_sky", "lower_ground"}
 
 HEX_RE = re.compile(r"^#[0-9A-Fa-f]{6}$")
 EMOJI_RE = re.compile("[\U0001F300-\U0001FAFF\u2600-\u27BF\u2300-\u23FF]", flags=re.UNICODE)
@@ -132,8 +137,12 @@ def validate_spec(spec_path: str, allow_emojis: bool = False) -> tuple[list[str]
             if st not in VALID_SLIDE_TYPES:
                 errors.append(f"slides[{i}] invalid type '{st}'. Valid types: {sorted(VALID_SLIDE_TYPES)}")
                 continue
-            if st == "split_horizon_3d" and len(str(sl.get("giant_word", ""))) > 10:
+            if st in ("split_horizon_3d", "depth_sandwich_pan", "vertical_elevator_3d") and len(str(sl.get("giant_word", ""))) > 10:
                 warnings.append(f"slides[{i}] giant_word '{sl.get('giant_word')}' exceeds 10 chars and may wrap or crowd bezels")
+            if st == "portal_flythrough_3d" and sl.get("stage") and sl.get("stage") not in VALID_PORTAL_STAGES:
+                errors.append(f"slides[{i}] invalid portal_flythrough_3d stage '{sl.get('stage')}' (expected: {sorted(VALID_PORTAL_STAGES)})")
+            if st == "vertical_elevator_3d" and sl.get("elevator_stop") and sl.get("elevator_stop") not in VALID_ELEVATOR_STOPS:
+                errors.append(f"slides[{i}] invalid vertical_elevator_3d elevator_stop '{sl.get('elevator_stop')}' (expected: {sorted(VALID_ELEVATOR_STOPS)})")
             if st == "macro_dolly_3d" and not sl.get("callouts"):
                 errors.append(f"slides[{i}] macro_dolly_3d requires non-empty 'callouts' array")
             if st == "timeline_morph_step" and not sl.get("stages"):

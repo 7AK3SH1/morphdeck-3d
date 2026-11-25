@@ -422,6 +422,219 @@ def draw_frosted_glass_card(w: int, h: int, surf_rgb: tuple, accent_rgb: tuple, 
     return canvas
 
 
+def render_refracted_glass_dock(
+    bg_img: Image.Image,
+    surf_rgb: tuple,
+    accent_rgb: tuple,
+    out_path: str,
+    crop_box: tuple = (80, 772, 1840, 1028),
+) -> Image.Image:
+    """Crop the underlying slide backdrop, blur at radius=24, and composite a specular frosted dock."""
+    w = crop_box[2] - crop_box[0]
+    h = crop_box[3] - crop_box[1]
+    pad = 8
+    radius = 36
+
+    slice_bg = bg_img.convert("RGB").crop(crop_box)
+    blurred = slice_bg.filter(ImageFilter.GaussianBlur(24))
+    tint = Image.new("RGBA", (w, h), (*surf_rgb, 142))
+    glass = Image.alpha_composite(blurred.convert("RGBA"), tint)
+
+    # Mask glass nicely inside inset rounded rect
+    inner_w, inner_h = w - 12, h - 16
+    glass_inner = glass.crop((6, 6, w - 6, h - 10))
+    mask = Image.new("L", (inner_w * 2, inner_h * 2), 0)
+    ImageDraw.Draw(mask).rounded_rectangle([0, 0, inner_w * 2 - 1, inner_h * 2 - 1], radius=radius * 2, fill=242)
+    mask = mask.resize((inner_w, inner_h), Image.Resampling.LANCZOS)
+
+    canvas = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    sh = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    ImageDraw.Draw(sh).rounded_rectangle([12, 14, w - 12, h - 6], radius=radius + 2, fill=(0, 0, 0, 165))
+    canvas = Image.alpha_composite(canvas, sh.filter(ImageFilter.GaussianBlur(pad)))
+    canvas.paste(glass_inner, (6, 6), mask)
+
+    d = ImageDraw.Draw(canvas)
+    d.rounded_rectangle([6, 6, w - 6, h - 10], radius=radius, outline=(255, 255, 255, 76), width=2)
+    d.line([(6 + radius, 8), (w - 6 - radius, 8)], fill=(255, 255, 255, 168), width=2)
+    d.line([(6 + radius, 11), (w - 6 - radius, 11)], fill=(*accent_rgb, 96), width=2)
+    canvas.save(out_path, "PNG")
+    return canvas
+
+
+def render_portal_aperture_masks(resolved: dict, out_dir: str, bg_src: str = "") -> None:
+    """
+    Generate procedural optical bulkhead aperture masks (portal_outer.png, portal_inner.png)
+    with crisp punched transparent viewports and specular HUD bevels, plus portal_bg.png.
+    """
+    pal = resolved["palette"]
+    acc1 = hex_to_rgb(pal["accent1"])
+    acc2 = hex_to_rgb(pal["accent2"])
+    surf = hex_to_rgb(pal["surface"])
+    obs = hex_to_rgb(pal["obsidian"])
+
+    W, H = 1920, 1080
+    bg_path = os.path.join(out_dir, "portal_bg.png")
+    if not bg_src:
+        bg_src = resolved.get("assets", {}).get("horizon_photo", "")
+    portal_bg = add_bottom_gradient(
+        ImageEnhance.Contrast(load_photo_or_fallback(bg_src, W, H, acc1, acc2, bias_y=0.45, seed=812)).enhance(1.08),
+        base_col=obs, max_alpha=145, start_frac=0.58,
+    ).convert("RGB")
+    portal_bg.save(bg_path, "PNG")
+
+    rng = np.random.default_rng(814)
+    yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
+    rad_dist = np.sqrt(((xx - W * 0.5) / (W * 0.52)) ** 2 + ((yy - H * 0.5) / (H * 0.55)) ** 2)
+    scan_noise = rng.integers(-3, 4, size=(H, 1, 1), dtype=np.int16)
+
+    # 1. portal_outer.png: matte brushed aerospace bulkhead with punched chamfered viewport [540..1380, 190..890]
+    base_dark = np.array([max(4, surf[0] // 2), max(5, surf[1] // 2), max(8, surf[2] // 2)], dtype=np.float32)
+    outer_rgb = base_dark[None, None, :] * (1.08 - 0.28 * rad_dist[..., None])
+    outer_rgb = np.clip(outer_rgb + scan_noise, 0, 255).astype(np.uint8)
+    outer_rgba = np.dstack([outer_rgb, np.full((H, W), 255, dtype=np.uint8)])
+    outer_im = Image.fromarray(outer_rgba, "RGBA")
+
+    # Punch crisp transparent rounded aperture at [540, 190, 1380, 890]
+    mask_cut = Image.new("L", (W * 2, H * 2), 255)
+    ImageDraw.Draw(mask_cut).rounded_rectangle([540 * 2, 190 * 2, 1380 * 2, 890 * 2], radius=96, fill=0)
+    mask_cut = mask_cut.resize((W, H), Image.Resampling.LANCZOS)
+    outer_arr = np.array(outer_im)
+    outer_arr[..., 3] = np.array(mask_cut)
+    outer_im = Image.fromarray(outer_arr, "RGBA")
+
+    od = ImageDraw.Draw(outer_im)
+    # Recessed matte frame + luminous accent inner specular bevel
+    od.rounded_rectangle([518, 168, 1402, 912], radius=58, outline=(*surf, 255), width=22)
+    od.rounded_rectangle([538, 188, 1382, 892], radius=48, outline=(*acc1, 225), width=4)
+    od.rounded_rectangle([532, 182, 1388, 898], radius=51, outline=(255, 255, 255, 110), width=2)
+    # Precision HUD corner brackets around the aperture
+    b_len = 36
+    for bx, by, sx, sy in [(504, 154, 1, 1), (1416, 154, -1, 1), (504, 926, 1, -1), (1416, 926, -1, -1)]:
+        od.line([(bx, by), (bx + sx * b_len, by)], fill=(*acc2, 210), width=3)
+        od.line([(bx, by), (bx, by + sy * b_len)], fill=(*acc2, 210), width=3)
+    # Top/bottom technical rule accents
+    od.line([(680, 146), (1240, 146)], fill=(255, 255, 255, 42), width=2)
+    od.line([(680, 934), (1240, 934)], fill=(255, 255, 255, 42), width=2)
+    outer_im.save(os.path.join(out_dir, "portal_outer.png"), "PNG")
+
+    # 2. portal_inner.png: secondary frosted carbon glass bulkhead with wide aperture [360..1560, 130..950]
+    inner_base = np.array([min(255, surf[0] + 6), min(255, surf[1] + 8), min(255, surf[2] + 14)], dtype=np.float32)
+    inner_rgb = inner_base[None, None, :] * (1.0 - 0.18 * rad_dist[..., None])
+    inner_rgba = np.dstack([np.clip(inner_rgb + scan_noise, 0, 255).astype(np.uint8), np.full((H, W), 240, dtype=np.uint8)])
+    inner_im = Image.fromarray(inner_rgba, "RGBA")
+
+    mask_in = Image.new("L", (W * 2, H * 2), 240)
+    ImageDraw.Draw(mask_in).rounded_rectangle([360 * 2, 130 * 2, 1560 * 2, 950 * 2], radius=84, fill=0)
+    mask_in = mask_in.resize((W, H), Image.Resampling.LANCZOS)
+    in_arr = np.array(inner_im)
+    in_arr[..., 3] = np.array(mask_in)
+    inner_im = Image.fromarray(in_arr, "RGBA")
+
+    idrw = ImageDraw.Draw(inner_im)
+    idrw.rounded_rectangle([358, 128, 1562, 952], radius=42, outline=(*acc2, 225), width=4)
+    idrw.rounded_rectangle([350, 120, 1570, 960], radius=46, outline=(255, 255, 255, 115), width=2)
+    inner_im.save(os.path.join(out_dir, "portal_inner.png"), "PNG")
+
+
+def render_vertical_elevator_world(resolved: dict, slide: dict, out_dir: str) -> None:
+    """
+    Generate a seamless double-height 1920x2160 vertical horizon panorama (elev_bg.png)
+    and matching sculpted ridge foreground cutout (elev_fg.png) for 2-stop vertical elevator motion.
+    """
+    pal = resolved["palette"]
+    acc1 = hex_to_rgb(pal["accent1"])
+    acc2 = hex_to_rgb(pal["accent2"])
+    obs = hex_to_rgb(pal["obsidian"])
+
+    W, H = 1920, 2160
+    bg_path = os.path.join(out_dir, "elev_bg.png")
+    fg_path = os.path.join(out_dir, "elev_fg.png")
+
+    src_bg = slide.get("backdrop_image", "")
+    if src_bg and os.path.exists(src_bg):
+        elev_bg = cover_crop(Image.open(src_bg).convert("RGB"), W, H, bias_y=0.45)
+    else:
+        rng = np.random.default_rng(915)
+        yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
+        yn = yy / float(H)
+        xn = xx / float(W)
+
+        horizon_y = 0.23
+        sky_top = np.array([9, 13, 24], dtype=np.float32)
+        sky_mid = np.array([min(255, int(acc2[0] * 0.48 + 20)), min(255, int(acc2[1] * 0.42 + 24)), min(255, int(acc2[2] * 0.58 + 38))], dtype=np.float32)
+        sky_hor = np.array([min(255, int(acc1[0] * 0.92 + 54)), min(255, int(acc1[1] * 0.72 + 44)), min(255, int(acc1[2] * 0.56 + 38))], dtype=np.float32)
+
+        t_sky = np.clip(yn / horizon_y, 0.0, 1.0)[..., None]
+        arr = sky_top * (1.0 - t_sky) ** 1.25 + sky_mid * (1.0 - (1.0 - t_sky) ** 1.25)
+
+        sun_x, sun_y = 0.62, horizon_y - 0.035
+        d_sun = np.sqrt(((xn - sun_x) * 1.4) ** 2 + ((yn - sun_y) * 3.8) ** 2)
+        bloom = np.exp(-d_sun * 2.8)[..., None]
+        core = np.exp(-(d_sun ** 2) * 24.0)[..., None]
+        arr = arr * (1.0 - bloom * 0.50) + sky_hor * (bloom * 0.88) + np.array([255, 244, 218], dtype=np.float32) * (core * 0.68)
+
+        x_1d = np.linspace(0.0, 1.0, W, dtype=np.float32)
+        # Distant + mid ridges around y ~ 0.16..0.24
+        for li, (base_hy, amp, freq, dark_f) in enumerate([
+            (0.165, 0.024, 5.5, 0.42),
+            (0.195, 0.018, 10.0, 0.24),
+        ]):
+            prof = base_hy + amp * np.sin(x_1d * freq + 1.8 * (li + 1)) + (amp * 0.45) * np.cos(x_1d * freq * 2.2)
+            ridge_mask = (yn >= prof[None, :])[..., None]
+            ridge_col = sky_top * (1.0 - dark_f) + sky_mid * dark_f
+            arr = np.where(ridge_mask, ridge_col, arr)
+
+        # Lower ground nocturnal water/bay mirror extending down to H=2160
+        water_mask = yn >= 0.205
+        t_water = np.clip((yn - 0.205) / 0.795, 0.0, 1.0)[..., None]
+        deep_valley = np.array([max(5, obs[0] // 2), max(7, obs[1] // 2), max(12, obs[2] // 2 + 4)], dtype=np.float32)
+        ref_glow = np.exp(-((xn - sun_x) * 2.2) ** 2)[..., None] * sky_hor * 0.42 * np.exp(-t_water * 6.5)
+        band_glow = np.exp(-((yn - 0.62) * 4.5) ** 2)[..., None] * (np.array(acc2, dtype=np.float32) * 0.14)
+        water_arr = deep_valley + ref_glow + band_glow
+        arr = np.where(water_mask[..., None], water_arr, arr)
+
+        # Crisp skyline bokeh lights & horizontal water reflection glints
+        im = Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8), "RGB")
+        ed = ImageDraw.Draw(im, "RGBA")
+        hy_px = int(0.205 * H)
+        for _ in range(130):
+            lx = int(rng.integers(40, W - 40))
+            ly = hy_px - int(rng.integers(-6, 26))
+            col = acc1 if rng.random() < 0.55 else acc2
+            r_sz = int(rng.integers(1, 4))
+            ed.ellipse([lx - r_sz, ly - r_sz, lx + r_sz, ly + r_sz], fill=(*col, 215))
+            ry = hy_px + 14 + int(rng.integers(0, 95))
+            ed.line([(lx - r_sz * 3, ry), (lx + r_sz * 3, ry)], fill=(*col, 88), width=2)
+
+        bokeh = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+        bd = ImageDraw.Draw(bokeh)
+        for _ in range(24):
+            bx = int(rng.integers(80, W - 80))
+            by = int(rng.integers(int(H * 0.14), int(H * 0.90)))
+            br = int(rng.integers(24, 72))
+            bcol = acc1 if rng.random() < 0.55 else acc2
+            bd.ellipse([bx - br, by - br, bx + br, by + br], fill=(*bcol, 20))
+        bokeh = bokeh.filter(ImageFilter.GaussianBlur(18))
+        elev_bg = Image.alpha_composite(im.convert("RGBA"), bokeh).convert("RGB")
+
+    elev_bg.save(bg_path, "PNG")
+
+    # Foreground ridge cutout: transparent sky above sculpted foreground ridge (~0.188*H)
+    src_cut = slide.get("subject_cutout", "")
+    if src_cut and os.path.exists(src_cut):
+        cover_crop(Image.open(src_cut).convert("RGBA"), W, H, bias_y=0.45).save(fg_path, "PNG")
+        return
+
+    yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
+    xn = xx / float(W)
+    yn = yy / float(H)
+    pinnacle = 0.026 * np.exp(-((xn - 0.46) ** 2) / 0.020)
+    ridge_y = 0.192 - pinnacle + 0.011 * np.sin(xn * 11.0 + 0.9) + 0.007 * np.cos(xn * 21.0 - 0.5)
+    alpha = np.clip((yn - ridge_y) / 0.004, 0.0, 1.0)
+    fg_arr = np.dstack([np.array(elev_bg, dtype=np.uint8), (alpha * 255).astype(np.uint8)])
+    Image.fromarray(fg_arr, "RGBA").save(fg_path, "PNG")
+
+
 def normalize_spec_to_v2(raw_spec: dict) -> dict:
     spec = copy.deepcopy(raw_spec)
     theme_name = spec.get("theme", "obsidian_kinetic")
@@ -1146,7 +1359,10 @@ def generate_all(spec_path: str, out_dir: str) -> None:
         build_one_3d_glb(second_arch, resolved, logo_badge, macbook_glb_path, out_dir)
 
     f_badge = load_font("bahnschrift", 22, 700)
+    surf_rgb = hex_to_rgb(pal["surface"])
     dock_thumbs_done = False
+    portal_done = False
+    elev_done = False
 
     for idx, sl in enumerate(resolved["slides"], start=1):
         st = sl.get("type", "")
@@ -1154,6 +1370,14 @@ def generate_all(spec_path: str, out_dir: str) -> None:
             render_editorial_visual(resolved, sl, idx, out_dir, out_name=f"s{idx}_cover_visual.png")
         elif st == "depth_sandwich_pan":
             render_pan_backdrop_and_cutout(resolved, sl, idx, out_dir)
+        elif st == "portal_flythrough_3d":
+            if not portal_done:
+                render_portal_aperture_masks(resolved, out_dir, bg_src=sl.get("backdrop_image", ""))
+                portal_done = True
+        elif st == "vertical_elevator_3d":
+            if not elev_done:
+                render_vertical_elevator_world(resolved, sl, out_dir)
+                elev_done = True
         elif st == "chart_infographic":
             render_chart_infographic(resolved, sl, idx, out_dir)
         elif st == "architecture_diagram":
@@ -1174,12 +1398,13 @@ def generate_all(spec_path: str, out_dir: str) -> None:
                     bg_src = fb_list[sp_i]
             foc = add_bottom_gradient(
                 add_left_gradient(
-                    ImageEnhance.Brightness(load_photo_or_fallback(bg_src, 1920, 1080, acc1 if idx % 2 == 1 else acc2, obs, 0.35, seed=400 + idx)).enhance(0.74),
-                    base_col=obs, max_alpha=242, fade_frac=0.66,
+                    ImageEnhance.Brightness(load_photo_or_fallback(bg_src, 1920, 1080, acc1 if idx % 2 == 1 else acc2, obs, 0.35, seed=400 + idx)).enhance(0.78),
+                    base_col=obs, max_alpha=232, fade_frac=0.64,
                 ),
-                base_col=obs, max_alpha=235, start_frac=0.58,
+                base_col=obs, max_alpha=172, start_frac=0.62,
             ).convert("RGB")
             foc.save(os.path.join(out_dir, f"s{idx}_bg.png"), "PNG")
+            render_refracted_glass_dock(foc, surf_rgb, acc1, os.path.join(out_dir, f"s{idx}_dock_refract.png"))
 
             sp = sl.get("spotlight", {})
             cw, ch = 520, 600

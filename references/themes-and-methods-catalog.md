@@ -76,12 +76,14 @@ Every archetype is synthesized cleanly into binary glTF 2.0 by `scripts/generate
 
 ---
 
-## 4. Composable Slide Method Reference (17 Methods)
+## 4. Composable Slide Method Reference (19 Methods)
 
-- `cover_hero`: `style` in `centered_clean | asymmetric_split | bold_poster | 3d_staged`. Pre-stages off-canvas Morph actors when Slide 2 is `split_horizon_3d` or `depth_sandwich_pan`.
+- `cover_hero`: `style` in `centered_clean | asymmetric_split | bold_poster | 3d_staged`. Pre-stages off-canvas Morph actors when Slide 2 is `split_horizon_3d`, `depth_sandwich_pan`, or `macro_dolly_3d`.
+- `portal_flythrough_3d`: `stage` in `exterior | interior | horizon`. Generates dual optical bulkhead masks (`portal_outer.png`, `portal_inner.png`) with punched chamfered viewports that zoom `4.2x-4.6x` past the camera under Morph while the live 3D subject flies forward into full view.
+- `vertical_elevator_3d`: `elevator_stop` in `upper_sky | lower_ground`. Traverses `-520 pt` vertically across a `1920x2160` world panorama (`elev_bg.png`) and foreground ridge cutout (`elev_fg.png`), keeping giant occluded typography behind the horizon while orbiting the live 3D hero cleanly in front of all scene layers.
 - `split_horizon_3d`: Contrasting upper canvas + lower horizon strip + giant behind-model typography (`max 10 chars`) + 4 KPI cards.
 - `depth_sandwich_pan`: 4-layer optical pan (`!!pan_bg` -> `!!pan_word` -> `!!pan_fg` foreground terrain ridge -> `!!Phone3D`). `pan_state`: `wide | zoom_right | zoom_left`.
-- `macro_dolly_3d`: 1.55x close-up 3D camera dolly on stage right with 3 frosted-glass callout cards, horizontal leader lines, and target dots.
+- `macro_dolly_3d`: 1.55x close-up 3D camera dolly on stage right with 3 staggered-velocity frosted-glass callout cards, horizontal leader lines, and target dots.
 - `orbit_steps_3d`: `variant` in `upper_stats | obsidian_steps` (`side`: `left | right`).
 - `timeline_morph_step`: 2-4 consecutive slides sharing `stages[]` and incrementing `active_index` while rotating the 3D hero progressively.
 - `kpi_bento`: `layout` in `left_anchor | top_hero_strip`. Pairs translucent frosted-glass metric containers with live 3D hero orbit.
@@ -91,7 +93,15 @@ Every archetype is synthesized cleanly into binary glTF 2.0 by `scripts/generate
 - `comparison_matrix`: 4-column feature benchmark matrix with highlighted featured column flanked by the 3D subject model.
 - `chapter_divider_morph`: Oversized chapter numeral, thesis statement, active bottom TOC rail, and dramatic 3D right stage.
 - `editorial_split`: Pairs rounded framed photography (`image_side`: `left | right`) with overlapping 3D hero and 2 KPI proof cards.
-- `spotlight_dock`: Consecutive slides incrementing `dock_index` glide `!!DockGlider` horizontally across the bottom glass dock while orbiting `!!Phone3D`.
+- `spotlight_dock`: Consecutive slides incrementing `dock_index` glide `!!DockGlider` horizontally across a true backdrop-refracted glass dock (`s*_dock_refract.png`), pre-stage staggered X entrances + orthogonal upward exits, morph pagination dot scale (`7pt` vs `14pt`), and reveal incoming backdrops via vertical `srcRect` curtain wipes.
 - `macbook_studio_3d`: Showcases secondary desktop 3D model (`laptop_studio`) alongside 3 frosted engineering pillars.
 - `full_bleed_visual`: Full-bleed atmospheric backdrop + bottom frosted caption bar + overlaid 3D subject model.
 - `closing_finale`: `style` in `editorial_statement | executive_cta | dual_3d`.
+
+---
+
+## 5. Cinema Motion & 3D Studio Lighting Architecture
+
+- **3-Point Colored Studio Lighting (`scripts/inject_3d_studio_lighting.py`)**: Every `<am3d:model3d>` container receives a theme-matched `<am3d:ambientLight>` plus three `<am3d:ptLight>` emitters (warm key, theme accent fill, colored rim backlight) matching our NumPy shader in `scripts/render_glb_preview.py`.
+- **Staggered Off-Canvas Velocity**: Text and card groups pre-stage at linearly increasing off-canvas distances (`-460`, `-560`, `-680`, `-800` pt or `+1080`, `+1240`, `+1400` pt) so fixed-duration Morph produces organic acceleration curves.
+- **Backdrop-Refracted Frosted Glass**: Dock surfaces sample and Gaussian-blur (`radius=24`) the exact underlying pixels of the slide background before applying frosted glass tint and a `2px` top specular rim.

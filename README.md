@@ -5,8 +5,10 @@
 **Cinematic 3D glTF + Morph PowerPoint Engineering Skill for AI Coding Agents**
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+[![Version](https://img.shields.io/badge/Version-2.0.0_Cinema_Motion-F97316.svg)](CHANGELOG.md)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB.svg)](pyproject.toml)
 [![3D Archetypes](https://img.shields.io/badge/3D_Archetypes-10_Procedural_GLB-8B5CF6.svg)](#10-procedural-pbr-3d-glb-archetypes-zero-third-party-binaries)
+[![Slide Methods](https://img.shields.io/badge/Slide_Methods-19_Composable_Morph-EC4899.svg)](#7-themes--19-slide-methods)
 [![Platform](https://img.shields.io/badge/Platform-Windows_COM_%7C_macOS_%7C_Linux-10B981.svg)](#pipeline-architecture)
 [![Agent Skills](https://img.shields.io/badge/Agent_Skill-Antigravity_%7C_Claude_%7C_Codex_%7C_Cursor-F59E0B.svg)](#quickstart-installation)
 
@@ -20,14 +22,14 @@
 
 Most AI-generated slide tools output flat 2D boxes with static bullet lists and recycled color palettes. **MorphDeck 3D** is an open-source Agent Skill and dual-engine presentation pipeline designed to engineer **cinema-grade 3D `.glb` + PowerPoint Morph decks from scratch** -- tailored automatically to the subject, industry, visual aesthetic, and narrative cadence of each project.
 
-| Feature | Generic AI Slide Generators | MorphDeck 3D (`morphdeck-3d`) |
+| Feature | Generic AI Slide Generators | MorphDeck 3D v2.0.0 (`morphdeck-3d`) |
 | :--- | :--- | :--- |
-| **3D Visual Centerpiece** | Flat stock icons or static screenshots | **10 original procedural PBR glTF 2.0 (`.glb`) 3D models** matched to the domain (`architectural_pavilion`, `ai_quantum_server`, `biotech_helix_core`, etc.) |
-| **Transitions & Motion** | Hard cuts or broken raw `<p159:morph>` tags | **60fps persistent 3D Morph interpolation** via COM `.Duplicate()` + ECMA-376 `<mc:AlternateContent>` compliant XML |
-| **Slide Depth** | Flat backgrounds + opaque boxes | **4-Layer Depth Sandwich** (backdrop -> occluded giant display type -> terrain horizon cutout -> 3D hero) & **frosted-glass cards** |
-| **Structural Originality** | Same repetitive slide outline every time | **17 composable slide methods** & **7 distinct theme systems** diagnosed per project in Step 0 |
-| **OS Support** | Proprietary web lock-in or Windows-only hacks | **Dual Engine**: Windows PowerPoint COM (live `.glb` embedding + `1920x1080` export) AND pure-Python cross-platform OpenXML + NumPy PBR studio renderer |
-| **Verification** | None | **Automated Quality Gate** (`validate_spec.py` + `verify_deck.py`): 0 XML errors, 0 external links, 0 emojis |
+| **3D Visual Centerpiece** | Flat stock icons or static screenshots | **10 original procedural PBR glTF 2.0 (`.glb`) 3D models** lit by a theme-calibrated **3-point colored `<am3d:ptLight>` studio rig** |
+| **Transitions & Camera Motion** | Hard cuts or broken raw `<p159:morph>` tags | **Optical Portal Fly-Throughs (`4.6x` aperture zoom)**, **2-Stop Vertical World Elevators (`-520 pt` pan)**, **`srcRect` Curtain-Wipe Reveals**, and **Staggered Off-Canvas Velocity Cascades** |
+| **Slide Depth & Glass** | Flat backgrounds + opaque boxes | **4-Layer Depth Sandwich** + **True Backdrop-Refracted Frosted Glass (`GaussianBlur(24)` + specular rim)** |
+| **Structural Originality** | Same repetitive slide outline every time | **19 composable slide methods** & **7 distinct theme systems** diagnosed per project in Step 0 |
+| **OS Support** | Proprietary web lock-in or Windows-only hacks | **Dual Engine**: Windows PowerPoint COM (live `.glb` embedding + studio lighting + `1920x1080` export) AND pure-Python cross-platform OpenXML + NumPy PBR studio renderer |
+| **Verification** | None | **Automated Quality Gate** (`validate_spec.py` + `verify_deck.py`): 0 XML errors, 0 external links, `<am3d:ptLight>` count verification, 0 emojis |
 
 ---
 
@@ -54,13 +56,15 @@ Every 3D model is procedurally synthesized in pure Python + NumPy into binary **
 
 ---
 
-## Showcase Renders (Exported Directly from PowerPoint)
+## Showcase Renders (Exported Directly from PowerPoint COM)
 
-| Architecture (`editorial_ivory` + `architectural_pavilion`) | Cloud & AI (`cyber_blueprint` + `ai_quantum_server`) |
+| Optical Portal Fly-Through (`obsidian_kinetic` + `aerospace_orbital_craft`) | 2-Stop Vertical World Elevator (`vertical_elevator_3d` + Occluded Display) |
 | :---: | :---: |
-| ![Atelier Solstice Split Horizon 3D](docs/showcase/slide_architecture.png) | ![VortexMesh Blueprint and Server 3D](docs/showcase/slide_ai_cluster.png) |
-| **Biotech 4-Layer Depth Sandwich (`biotech_luminance` + `biotech_helix_core`)** | **Mobile + Web Dual-3D (`obsidian_kinetic` + `smartphone_pro` & `laptop_studio`)** |
-| ![Helixis Bio 4-Layer Depth Sandwich](docs/showcase/slide_biotech_depth.png) | ![RelayField Dual-3D Finale](docs/showcase/slide_mobile_dual3d.png) |
+| ![Aetherion Optical Portal Fly-Through](docs/showcase/slide_portal_flythrough.png) | ![Aetherion Vertical World Elevator](docs/showcase/slide_vertical_elevator.png) |
+| **Backdrop-Refracted Glass Dock (`kinetic_poster` + `product_drop_capsule`)** | **Architecture Split-Horizon (`editorial_ivory` + `architectural_pavilion`)** |
+| ![PulseDrop Refracted Dock & 3-Point Lighting](docs/showcase/slide_refracted_dock.png) | ![Atelier Solstice Split Horizon 3D](docs/showcase/slide_architecture.png) |
+| **Cloud & AI Topology (`cyber_blueprint` + `ai_quantum_server`)** | **Biotech 4-Layer Depth Sandwich (`biotech_luminance` + `biotech_helix_core`)** |
+| ![VortexMesh Blueprint and Server 3D](docs/showcase/slide_ai_cluster.png) | ![Helixis Bio 4-Layer Depth Sandwich](docs/showcase/slide_biotech_depth.png) |
 
 ---
 
@@ -89,11 +93,11 @@ Then run the installer for your agent environment:
 ### Option 2: Use the Turnkey CLI Directly
 
 ```bash
-# 1. Discover all 10 3D archetypes, 7 themes, and 17 slide methods
+# 1. Discover all 10 3D archetypes, 7 themes, and 19 slide methods
 python scripts/morphdeck.py list
 
-# 2. Initialize a starter deck specification (architecture | ai | product | executive | biotech | mobile)
-python scripts/morphdeck.py init --template biotech --output work/deck_spec.json
+# 2. Initialize a starter deck specification (aerospace | architecture | ai | product | executive | biotech | mobile)
+python scripts/morphdeck.py init --template aerospace --output work/deck_spec.json
 
 # 3. Preview any 3D archetype as a studio PNG in under 1 second
 python scripts/morphdeck.py preview-3d --archetype biotech_helix_core --brand "HELIXIS" --output preview.png
@@ -107,7 +111,7 @@ python scripts/morphdeck.py build work/deck_spec.json --out Helixis_Deck.pptx --
 ## Pipeline Architecture
 
 ```text
-  deck_spec.json  (theme + hero_3d.archetype + 17 composable slide methods)
+  deck_spec.json  (theme + hero_3d.archetype + 19 composable slide methods)
         |
         v
   [1] validate_spec.py          Pre-flight schema, #RRGGBB palette, archetype & character limits
@@ -115,30 +119,31 @@ python scripts/morphdeck.py build work/deck_spec.json --out Helixis_Deck.pptx --
         v
   [2] render_studio_assets.py   Synthesizes:
         |-- generate_subject_glb.py -> Domain PBR glTF 2.0 (.glb) + 1024x1024 core texture
-        |-- Frosted glass containers (Gaussian shadow + 2px top specular rim)
-        |-- 4-Layer Depth Sandwich terrain cutout (s*_pan_fg.png)
-        |-- 2x supersampled comparison charts & system architecture blueprints
+        |-- Optical portal aperture masks (portal_outer.png + portal_inner.png)
+        |-- 1920x2160 2-stop vertical elevator panoramas & ridge cutouts
+        |-- True backdrop-refracted glass docks (GaussianBlur(24) + specular rim)
+        |-- 4-Layer Depth Sandwich terrain cutout + 2x supersampled charts & diagrams
         |
         v
-  [3] Dual Build Engine
-        |-- Windows PowerPoint COM (build_deck.ps1):
-        |     Embeds .glb once -> clones persistent shapes via .Duplicate()
-        |     -> 60fps RotationX/Y/Z Morph -> exports 1920x1080 PNGs
+  [3] Dual Build Engine + 3D Studio Optics
+        |-- Windows PowerPoint COM (build_deck.ps1 -> inject_3d_studio_lighting.py -> -ExportOnly):
+        |     Embeds .glb once -> clones persistent shapes via .Duplicate() -> injects 3-point colored
+        |     <am3d:ptLight> studio rig -> re-opens cleanly & exports 1920x1080 lit PNGs
         |-- macOS / Linux / CI (build_deck_crossplatform.py + render_glb_preview.py):
-        |     Renders NumPy PBR studio 3D angles -> python-pptx OpenXML assembly
+        |     Renders 3-point theme-lit PBR studio views -> python-pptx OpenXML assembly
         |     -> injects ECMA-376 <mc:AlternateContent><p159:morph/> XML
         |
         v
   [4] verify_deck.py            Enforces 0 XML errors, 0 external links, Morph tags,
-                                embedded .glb count, 0 emojis, and 1920x1080 render checks
+                                embedded .glb count, <am3d:ptLight> rig verification, 0 emojis, and 1080p renders
 ```
 
 ---
 
-## 7 Themes & 17 Slide Methods
+## 7 Themes & 19 Slide Methods
 
 - **7 Built-in Theme Systems**: `obsidian_kinetic`, `editorial_ivory`, `cyber_blueprint`, `kinetic_poster`, `executive_clean`, `biotech_luminance`, `monochrome_luxury`.
-- **17 Composable Slide Methods**: `cover_hero`, `split_horizon_3d`, `depth_sandwich_pan`, `macro_dolly_3d`, `orbit_steps_3d`, `timeline_morph_step`, `kpi_bento`, `chart_infographic`, `architecture_diagram`, `problem_solution_split`, `comparison_matrix`, `chapter_divider_morph`, `editorial_split`, `spotlight_dock`, `macbook_studio_3d`, `full_bleed_visual`, `closing_finale`.
+- **19 Composable Slide Methods**: `cover_hero`, `portal_flythrough_3d`, `vertical_elevator_3d`, `split_horizon_3d`, `depth_sandwich_pan`, `macro_dolly_3d`, `orbit_steps_3d`, `timeline_morph_step`, `kpi_bento`, `chart_infographic`, `architecture_diagram`, `problem_solution_split`, `comparison_matrix`, `chapter_divider_morph`, `editorial_split`, `spotlight_dock`, `macbook_studio_3d`, `full_bleed_visual`, `closing_finale`.
 
 Explore all schemas in [references/themes-and-methods-catalog.md](references/themes-and-methods-catalog.md) and ready-to-build domain specs in [examples/](examples/).
 
@@ -146,7 +151,7 @@ Explore all schemas in [references/themes-and-methods-catalog.md](references/the
 
 ## Inspiration & Design Philosophy
 
-**MorphDeck 3D** is inspired by modern editorial 3D presentation design — specifically the craft of Split-Horizon contrast pivots, Depth-Sandwich typographic occlusion, continuous camera-orbit Morph transitions, and tactile frosted-glass surfaces — re-engineered from first principles into a 100% original, deterministic open-source automation pipeline for AI agents.
+**MorphDeck 3D** is inspired by modern editorial 3D presentation design — specifically the craft of optical aperture fly-throughs, vertical multi-stop world panoramas, Split-Horizon contrast pivots, Depth-Sandwich typographic occlusion, continuous camera-orbit Morph transitions, and tactile backdrop-refracted glass surfaces — re-engineered from first principles into a 100% original, deterministic open-source automation pipeline for AI agents.
 
 ---
 

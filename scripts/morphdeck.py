@@ -2,18 +2,19 @@
 # Copyright 2026 Mohamed S. Sissoko (7AK3SH1)
 # Licensed under the Apache License, Version 2.0 (see LICENSE and NOTICE).
 """
-Unified Turnkey CLI for morphdeck-3d.
+Unified Turnkey CLI for morphdeck-3d v2.0.0.
 
 Subcommands:
-  list       Print all 10 procedural 3D archetypes, 7 themes, and 17 slide methods.
+  list       Print all 10 procedural 3D archetypes, 7 themes, and 19 slide methods.
   init       Initialize a starter deck_spec.json from a domain example template.
   validate   Run pre-flight JSON schema & typography checks on a deck_spec.json.
   preview-3d Generate any procedural 3D .glb archetype and render a studio RGBA PNG.
-  build      Full pipeline: validate -> render assets -> COM or cross-platform build -> verify.
-  verify     Run OpenXML, Morph, GLB, and 1080p render verification gates on a .pptx.
+  build      Full pipeline: validate -> render assets -> COM/OpenXML + 3D studio lighting -> verify.
+  verify     Run OpenXML, Morph, GLB, studio lights, and 1080p render verification gates on a .pptx.
 """
 
 import argparse
+import json
 import os
 import shutil
 import subprocess
@@ -28,6 +29,7 @@ if SCRIPT_DIR not in sys.path:
     sys.path.insert(0, SCRIPT_DIR)
 
 from generate_subject_glb import ARCHETYPES, generate_subject_glb  # noqa: E402
+from inject_3d_studio_lighting import inject_3d_studio_lighting  # noqa: E402
 from render_glb_preview import render_glb_to_image  # noqa: E402
 from render_studio_assets import THEMES, generate_all  # noqa: E402
 from validate_spec import VALID_SLIDE_TYPES, validate_spec  # noqa: E402
@@ -35,6 +37,7 @@ from verify_deck import verify_pptx  # noqa: E402
 from build_deck_crossplatform import build_crossplatform_pptx  # noqa: E402
 
 TEMPLATE_MAP = {
+    "aerospace": "aerospace_portal_cinema.json",
     "architecture": "architecture_pavilion.json",
     "ai": "ai_cloud_cluster.json",
     "product": "product_drop_launch.json",
@@ -45,14 +48,14 @@ TEMPLATE_MAP = {
 
 
 def cmd_list(_args) -> int:
-    print("=== morphdeck-3d Capabilities (Apache-2.0 | Mohamed S. Sissoko / 7AK3SH1) ===")
+    print("=== morphdeck-3d v2.0.0 Capabilities (Apache-2.0 | Mohamed S. Sissoko / 7AK3SH1) ===")
     print(f"\n10 Procedural 3D .glb Archetypes (+ aliases: iphone -> smartphone_pro, macbook -> laptop_studio):")
     for a in ARCHETYPES:
         print(f"  - {a}")
-    print(f"\n7 Visual Theme Systems:")
+    print(f"\n7 Visual Theme Systems (+ 3-Point <am3d:ptLight> Studio Lighting Rigs):")
     for name, cfg in THEMES.items():
         print(f"  - {name:20s} | default 3D: {cfg['default_archetype']:26s} | display: {cfg['display_font']}")
-    print(f"\n17 Composable Slide Methods:")
+    print(f"\n19 Composable Slide Methods:")
     for st in sorted(VALID_SLIDE_TYPES):
         print(f"  - {st}")
     return 0
@@ -92,7 +95,7 @@ def cmd_preview_3d(args) -> int:
             accent2_hex=args.accent2,
             accent3_hex=args.accent3,
         )
-        img = render_glb_to_image(glb_path, args.size, args.size, args.rx, args.ry, args.rz)
+        img = render_glb_to_image(glb_path, args.size, args.size, args.rx, args.ry, args.rz, theme=args.theme)
         os.makedirs(os.path.dirname(os.path.abspath(args.output)), exist_ok=True)
         img.save(args.output, "PNG")
         print(f"Preview rendered ({args.archetype}, {args.size}x{args.size}) -> {args.output}")
@@ -127,6 +130,10 @@ def cmd_build(args) -> int:
             print(f"ERROR: {e}")
         return 1
 
+    with open(args.spec, "r", encoding="utf-8") as f:
+        spec_data = json.load(f)
+    spec_theme = spec_data.get("theme", "obsidian_kinetic")
+
     work_dir = args.work_dir or tempfile.mkdtemp(prefix="morphdeck_work_")
     assets_dir = os.path.join(work_dir, "assets")
     renders_dir = args.renders or os.path.join(work_dir, "renders")
@@ -137,6 +144,8 @@ def cmd_build(args) -> int:
 
         if use_com:
             ps1 = os.path.join(SCRIPT_DIR, "build_deck.ps1")
+            out_abs = os.path.abspath(args.out)
+            renders_abs = os.path.abspath(renders_dir)
             cmd = [
                 "powershell",
                 "-ExecutionPolicy",
@@ -148,16 +157,36 @@ def cmd_build(args) -> int:
                 "-AssetsDir",
                 os.path.abspath(assets_dir),
                 "-OutputPptx",
-                os.path.abspath(args.out),
+                out_abs,
                 "-ExportDir",
-                os.path.abspath(renders_dir),
+                renders_abs,
+                "-SkipExport",
             ]
-            if args.copy_to:
-                cmd.extend(["-CopyTo", os.path.abspath(args.copy_to)])
             proc = subprocess.run(cmd)
             if proc.returncode != 0:
                 return proc.returncode
-            return verify_pptx(args.out, renders_dir=renders_dir, require_3d=True)
+
+            inject_3d_studio_lighting(out_abs, theme=spec_theme)
+
+            export_cmd = [
+                "powershell",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                ps1,
+                "-OutputPptx",
+                out_abs,
+                "-ExportDir",
+                renders_abs,
+                "-ExportOnly",
+            ]
+            if args.copy_to:
+                export_cmd.extend(["-CopyTo", os.path.abspath(args.copy_to)])
+            proc_exp = subprocess.run(export_cmd)
+            if proc_exp.returncode != 0:
+                return proc_exp.returncode
+
+            return verify_pptx(out_abs, renders_dir=renders_abs, require_3d=True)
         else:
             build_crossplatform_pptx(args.spec, assets_dir, args.out)
             if args.copy_to:
@@ -205,6 +234,7 @@ def main():
     p_prev.add_argument("--rx", type=float, default=14.0)
     p_prev.add_argument("--ry", type=float, default=-24.0)
     p_prev.add_argument("--rz", type=float, default=2.0)
+    p_prev.add_argument("--theme", default="obsidian_kinetic", choices=sorted(THEMES.keys()))
     p_prev.set_defaults(func=cmd_preview_3d)
 
     p_build = sub.add_parser("build", help="Validate, render assets, build .pptx, and verify")

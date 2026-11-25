@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "morphdeck-3d"
-version = "1.0.0"
+version = "2.0.0"
 description = "Cinematic 3D glTF + Morph PowerPoint engineering engine and Agent Skill for AI coding agents."
 readme = "README.md"
 license = "Apache-2.0"

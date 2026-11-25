@@ -65,8 +65,12 @@ def verify_pptx(
             failures.append("Presentation contains 0 slides")
 
         emoji_hits = []
+        pt_light_count = 0
+        model3d_count = 0
         for s in slides:
             txt = z.read(s).decode("utf-8")
+            pt_light_count += txt.count("<am3d:ptLight")
+            model3d_count += txt.count("<am3d:model3d")
             if "mc:AlternateContent" not in txt or "p159:morph" not in txt:
                 failures.append(f"{s} missing compliant <mc:AlternateContent> + <p159:morph>")
             if not allow_emojis:
@@ -102,6 +106,7 @@ def verify_pptx(
     print(f"Slides verified: {len(slides)} | XML errors: {xml_errors} | External links: {len(ext_links)}")
     if glb_sizes:
         print(f"Embedded GLBs ({len(glbs)}): {glb_sizes}")
+        print(f"Studio 3D Lights: {pt_light_count} point light(s) across {model3d_count} <am3d:model3d> node(s)")
     else:
         print("Embedded GLBs (0): cross-platform studio-rendered 3D deck (OK)")
     if renders_dir:

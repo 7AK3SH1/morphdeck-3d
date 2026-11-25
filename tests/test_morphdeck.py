@@ -11,6 +11,9 @@ import struct
 import sys
 import tempfile
 import unittest
+import zipfile
+import xml.etree.ElementTree as ET
+import numpy as np
 from PIL import Image, ImageStat
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -21,6 +24,7 @@ if SCRIPTS_DIR not in sys.path:
     sys.path.insert(0, SCRIPTS_DIR)
 
 from generate_subject_glb import ARCHETYPES, generate_subject_glb  # noqa: E402
+from inject_3d_studio_lighting import inject_3d_studio_lighting  # noqa: E402
 from render_glb_preview import render_glb_to_image  # noqa: E402
 from render_studio_assets import generate_all  # noqa: E402
 from validate_spec import validate_spec  # noqa: E402
@@ -73,7 +77,7 @@ class TestMorphDeck3D(unittest.TestCase):
 
     def test_all_examples_pass_spec_validation(self):
         examples = sorted(glob.glob(os.path.join(EXAMPLES_DIR, "*.json")))
-        self.assertGreaterEqual(len(examples), 6)
+        self.assertGreaterEqual(len(examples), 7)
         for path in examples:
             errors, _ = validate_spec(path)
             self.assertEqual(errors, [], f"Validation errors in {path}: {errors}")
@@ -88,10 +92,14 @@ class TestMorphDeck3D(unittest.TestCase):
                     "brand": {"name": "Bad"},
                     "palette": {"accent1": "NOTHEX"},
                     "hero_3d": {"archetype": "nonexistent_mesh"},
-                    "slides": [{"type": "unknown_slide"}],
+                    "slides": [
+                        {"type": "unknown_slide"},
+                        {"type": "portal_flythrough_3d", "stage": "bad_stage"},
+                        {"type": "vertical_elevator_3d", "elevator_stop": "bad_stop"},
+                    ],
                 }, f)
             errors, _ = validate_spec(bad)
-            self.assertGreaterEqual(len(errors), 4)
+            self.assertGreaterEqual(len(errors), 6)
 
     def test_crossplatform_e2e_build_and_verify(self):
         spec = os.path.join(EXAMPLES_DIR, "biotech_therapeutics.json")
@@ -103,6 +111,83 @@ class TestMorphDeck3D(unittest.TestCase):
             self.assertTrue(os.path.exists(out_pptx))
             rc = verify_pptx(out_pptx, require_3d=False)
             self.assertEqual(rc, 0)
+
+    def test_v2_cinema_assets_and_crossplatform_e2e(self):
+        spec = os.path.join(EXAMPLES_DIR, "aerospace_portal_cinema.json")
+        with tempfile.TemporaryDirectory() as tmp:
+            assets_dir = os.path.join(tmp, "assets")
+            out_pptx = os.path.join(tmp, "aerospace.pptx")
+            generate_all(spec, assets_dir)
+
+            with Image.open(os.path.join(assets_dir, "portal_outer.png")) as im_po:
+                p_out = im_po.convert("RGBA")
+            with Image.open(os.path.join(assets_dir, "portal_inner.png")) as im_pi:
+                p_in = im_pi.convert("RGBA")
+            self.assertEqual(p_out.size, (1920, 1080))
+            self.assertEqual(p_in.size, (1920, 1080))
+            out_zero_frac = float(np.mean(np.array(p_out)[..., 3] == 0))
+            in_zero_frac = float(np.mean(np.array(p_in)[..., 3] == 0))
+            self.assertGreater(out_zero_frac, 0.15)
+            self.assertLess(out_zero_frac, 0.50)
+            self.assertGreater(in_zero_frac, out_zero_frac)
+
+            with Image.open(os.path.join(assets_dir, "elev_bg.png")) as ev_bg:
+                self.assertEqual(ev_bg.size, (1920, 2160))
+            with Image.open(os.path.join(assets_dir, "elev_fg.png")) as im_efg:
+                ev_fg = im_efg.convert("RGBA")
+                self.assertEqual(ev_fg.size, (1920, 2160))
+                fg_alpha = np.array(ev_fg)[..., 3]
+            self.assertGreater(float(np.mean(fg_alpha == 0)), 0.10)
+            self.assertGreater(float(np.mean(fg_alpha == 255)), 0.65)
+
+            build_crossplatform_pptx(spec, assets_dir, out_pptx)
+            rc = verify_pptx(out_pptx, require_3d=False)
+            self.assertEqual(rc, 0)
+
+    def test_refracted_dock_asset_generation(self):
+        spec = os.path.join(EXAMPLES_DIR, "product_drop_launch.json")
+        with tempfile.TemporaryDirectory() as tmp:
+            assets_dir = os.path.join(tmp, "assets")
+            generate_all(spec, assets_dir)
+            with Image.open(os.path.join(assets_dir, "s4_dock_refract.png")) as dock_im:
+                self.assertEqual(dock_im.size, (1760, 256))
+                self.assertEqual(dock_im.mode, "RGBA")
+
+    def test_inject_3d_studio_lighting_preserves_namespaces(self):
+        sample_xml = (
+            '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+            '<p:sld xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" '
+            'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" '
+            'xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" '
+            'xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" '
+            'xmlns:p159="http://schemas.microsoft.com/office/powerpoint/2015/09/main" '
+            'xmlns:am3d="http://schemas.microsoft.com/office/drawing/2017/model3d">'
+            '<p:cSld><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr>'
+            '<p:grpSpPr/><mc:AlternateContent><mc:Choice Requires="am3d">'
+            '<am3d:model3d><am3d:spPr/><am3d:camera/><am3d:trans/>'
+            '<am3d:ambientLight><am3d:clr><a:scrgbClr r="50000" g="50000" b="50000"/></am3d:clr><am3d:illuminance n="500000" d="1000000"/></am3d:ambientLight>'
+            '<am3d:ptLight rad="0"><am3d:clr><a:scrgbClr r="100000" g="100000" b="100000"/></am3d:clr></am3d:ptLight>'
+            '<am3d:extLst/>'
+            '</am3d:model3d></mc:Choice><mc:Fallback/></mc:AlternateContent>'
+            '</p:spTree></p:cSld>'
+            '<mc:AlternateContent><mc:Choice Requires="p159"><p:transition><p159:morph option="byObject"/></p:transition></mc:Choice></mc:AlternateContent>'
+            '</p:sld>'
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            mock_pptx = os.path.join(tmp, "mock_3d.pptx")
+            with zipfile.ZipFile(mock_pptx, "w", zipfile.ZIP_DEFLATED) as z:
+                z.writestr("ppt/slides/slide1.xml", sample_xml.encode("utf-8"))
+            upgraded = inject_3d_studio_lighting(mock_pptx, theme="cyber_blueprint")
+            self.assertEqual(upgraded, 1)
+            with zipfile.ZipFile(mock_pptx, "r") as z:
+                out_xml = z.read("ppt/slides/slide1.xml").decode("utf-8")
+            self.assertIn("<am3d:model3d>", out_xml)
+            self.assertIn("<p159:morph", out_xml)
+            self.assertEqual(out_xml.count("<am3d:ambientLight>"), 1)
+            self.assertEqual(out_xml.count("<am3d:ptLight"), 3)
+            self.assertIn('r="40000"', out_xml)
+            self.assertIn('<am3d:ptLight rad="0"><am3d:clr><a:scrgbClr r="92000"', out_xml)
+            ET.fromstring(out_xml)
 
     def test_repository_hygiene_zero_emojis_zero_leaks(self):
         # Checked via byte decoding so this test file contains zero literal restricted strings.
