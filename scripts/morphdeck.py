@@ -31,16 +31,23 @@ if SCRIPT_DIR not in sys.path:
     sys.path.insert(0, SCRIPT_DIR)
 
 from build_cinema_crossplatform import build_cinema_crossplatform  # noqa: E402
-from build_deck_crossplatform import build_crossplatform_pptx  # noqa: E402
 from fetch_real_glb import fetch_khronos_glb, fetch_nasa_glb, fetch_polyhaven_glb, inspect_glb_stats, resolve_auto_glb  # noqa: E402
 from fetch_real_photo import fetch_wikimedia_photo  # noqa: E402
 from inject_3d_studio_lighting import inject_3d_studio_lighting  # noqa: E402
 from prepare_cinema_assets import UNIVERSES, prepare_all  # noqa: E402
 from render_glb_preview import render_glb_to_image  # noqa: E402
-from render_studio_assets import ARCHETYPES, THEMES, generate_all  # noqa: E402
 from studio_cutout import make_studio_cutout, punch_portal_mask, split_horizon_cutout  # noqa: E402
 from validate_spec import VALID_ARCHETYPES, VALID_CINEMA_SLIDE_TYPES, VALID_THEMES, validate_spec  # noqa: E402
 from verify_deck import verify_pptx  # noqa: E402
+
+try:
+    from build_deck_crossplatform import build_crossplatform_pptx  # noqa: E402
+    from render_studio_assets import ARCHETYPES, THEMES, generate_all  # noqa: E402
+except ImportError:
+    build_crossplatform_pptx = None
+    ARCHETYPES = {}
+    THEMES = {}
+    generate_all = None
 
 
 def cmd_universes(_args: argparse.Namespace) -> None:
@@ -215,6 +222,8 @@ def cmd_build(args: argparse.Namespace) -> None:
             resolved = prepare_all(os.path.abspath(spec_path), assets_dir)
             profile = resolved["universe"]
         else:
+            if generate_all is None:
+                raise RuntimeError("Legacy v2 assets engine is not bundled; use schema_version: 3.")
             resolved = generate_all(os.path.abspath(spec_path), assets_dir)
             profile = resolved["theme"]
 
@@ -245,6 +254,8 @@ def cmd_build(args: argparse.Namespace) -> None:
             if is_v3:
                 build_cinema_crossplatform(os.path.abspath(spec_path), assets_dir, out_pptx)
             else:
+                if build_crossplatform_pptx is None:
+                    raise RuntimeError("Legacy v2 cross-platform engine is not bundled; use schema_version: 3.")
                 build_crossplatform_pptx(os.path.abspath(spec_path), assets_dir, out_pptx)
 
         if not args.skip_verify:
