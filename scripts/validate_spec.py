@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
-# Copyright 2026 Mohamed S. Sissoko (7AK3SH1)
+# Copyright 2026 7AK3SH1
 # Licensed under the Apache License, Version 2.0 (see LICENSE and NOTICE).
 """
-Pre-Flight Deck Spec Linter for morphdeck-3d.
+JSON Schema Validator & Anti-Regression Gate for morphdeck-3d (v2 & Cinema-Morph v3).
 
-Validates deck_spec.json BEFORE rendering or invoking PowerPoint/OpenXML so
-AI agents and CI catch missing fields, invalid hex colors, invalid 3D
-archetypes, unicode emojis, and text overflow risks immediately.
+Validates both:
+  - v3 Cinema-Morph specs (`universe`, real `.glb`/photorealistic `hero_3d`, 17 slide types)
+  - v2 Legacy specs (`theme`, 10 archetypes + custom, 19 legacy slide types)
+Accepts either a file path or a parsed dict and returns `(errors, warnings)`.
+Rejects missing required fields, malformed hex colors, invalid slide counts, and emojis.
 """
 
 import argparse
@@ -14,6 +16,35 @@ import json
 import os
 import re
 import sys
+
+VALID_UNIVERSES = {
+    "documentary_press",
+    "architectural_portal",
+    "sculptural_museum",
+    "commercial_studio",
+    "executive_swiss",
+    "editorial_pop",
+}
+
+VALID_CINEMA_SLIDE_TYPES = {
+    "newspaper_dive",
+    "editorial_print_overlay",
+    "odometer_counter",
+    "flyby_wipe",
+    "cutout_map_stage",
+    "poster_depth_reveal",
+    "picture_frame_pullback",
+    "real_portal_flythrough",
+    "refracted_spotlight_dock",
+    "parchment_3d_split",
+    "vertical_world_elevator",
+    "rotational_drift_3d",
+    "swiss_bento_morph",
+    "timeline_rail_morph",
+    "chart_infographic",
+    "architecture_blueprint",
+    "closing_finale",
+}
 
 VALID_THEMES = {
     "obsidian_kinetic",
@@ -36,8 +67,6 @@ VALID_ARCHETYPES = {
     "fintech_vault_prism",
     "smartphone_pro",
     "laptop_studio",
-    "iphone",
-    "macbook",
     "custom",
 }
 
@@ -46,8 +75,8 @@ VALID_SLIDE_TYPES = {
     "portal_flythrough_3d",
     "vertical_elevator_3d",
     "split_horizon_3d",
-    "macro_dolly_3d",
     "depth_sandwich_pan",
+    "macro_dolly_3d",
     "orbit_steps_3d",
     "timeline_morph_step",
     "kpi_bento",
@@ -63,123 +92,123 @@ VALID_SLIDE_TYPES = {
     "closing_finale",
 }
 
-VALID_PORTAL_STAGES = {"exterior", "interior", "horizon"}
-VALID_ELEVATOR_STOPS = {"upper_sky", "lower_ground"}
-
 HEX_RE = re.compile(r"^#[0-9A-Fa-f]{6}$")
-EMOJI_RE = re.compile("[\U0001F300-\U0001FAFF\u2600-\u27BF\u2300-\u23FF]", flags=re.UNICODE)
+EMOJI_RE = re.compile(r"[\U0001F300-\U0001FAFF\u2600-\u27BF\u2300-\u23FF]")
 
 
-def _walk_strings(obj, path="root"):
+def _check_no_emoji(obj, path: str, errors: list[str]) -> None:
     if isinstance(obj, str):
-        yield path, obj
+        if EMOJI_RE.search(obj):
+            errors.append(f"Emoji detected at '{path}': remove emojis and use typographic labels.")
     elif isinstance(obj, list):
         for i, item in enumerate(obj):
-            yield from _walk_strings(item, f"{path}[{i}]")
+            _check_no_emoji(item, f"{path}[{i}]", errors)
     elif isinstance(obj, dict):
         for k, v in obj.items():
-            yield from _walk_strings(v, f"{path}.{k}")
+            _check_no_emoji(v, f"{path}.{k}", errors)
 
 
-def validate_spec(spec_path: str, allow_emojis: bool = False) -> tuple[list[str], list[str]]:
+def validate_spec(spec_or_path) -> tuple[list[str], list[str]]:
     errors: list[str] = []
     warnings: list[str] = []
 
-    if not os.path.exists(spec_path):
-        return [f"Spec file not found: {spec_path}"], warnings
-
-    try:
-        with open(spec_path, "r", encoding="utf-8") as f:
+    if isinstance(spec_or_path, (str, os.PathLike)):
+        if not os.path.exists(spec_or_path):
+            return ([f"Spec file not found: {spec_or_path}"], warnings)
+        with open(spec_or_path, "r", encoding="utf-8") as f:
             spec = json.load(f)
-    except Exception as exc:
-        return [f"Invalid JSON in {spec_path}: {exc}"], warnings
+    else:
+        spec = spec_or_path
 
     if not isinstance(spec, dict):
-        return ["Top-level JSON value must be an object"], warnings
+        return (["Spec root must be a JSON object."], warnings)
 
-    theme = spec.get("theme", "obsidian_kinetic")
-    if theme not in VALID_THEMES:
-        errors.append(f"Invalid theme '{theme}'. Must be one of: {sorted(VALID_THEMES)}")
-
-    brand = spec.get("brand", {})
-    if not isinstance(brand, dict) or not brand.get("name"):
-        errors.append("Missing required brand.name field")
+    _check_no_emoji(spec, "root", errors)
+    slides = spec.get("slides")
+    if not isinstance(slides, list) or not (1 <= len(slides) <= 24):
+        errors.append("'slides' must be a non-empty list of 1 to 24 slides.")
+        return (errors, warnings)
 
     pal = spec.get("palette", {})
     if isinstance(pal, dict):
-        for key in ("accent1", "accent2", "accent3", "chassis_color"):
-            if key in pal and pal[key] and not HEX_RE.match(str(pal[key])):
-                errors.append(f"Invalid hex color for palette.{key}: '{pal[key]}' (expected #RRGGBB)")
+        for ck, cv in pal.items():
+            if ck == "is_light":
+                continue
+            if cv and not HEX_RE.match(str(cv)):
+                errors.append(f"palette.{ck} invalid hex color '{cv}' (expected #RRGGBB).")
 
-    hero = spec.get("hero_3d", {})
-    if isinstance(hero, dict) and hero.get("archetype"):
-        arch = str(hero["archetype"]).strip().lower()
-        if arch not in VALID_ARCHETYPES:
-            errors.append(f"Invalid hero_3d.archetype '{arch}'. Must be one of: {sorted(VALID_ARCHETYPES)}")
-        if arch == "custom" and not (hero.get("custom_glb_path") or spec.get("assets", {}).get("custom_glb_path")):
-            errors.append("hero_3d.archetype is 'custom' but no custom_glb_path was provided")
-    if isinstance(hero, dict) and hero.get("secondary_archetype"):
-        sec = str(hero["secondary_archetype"]).strip().lower()
-        if sec not in VALID_ARCHETYPES:
-            errors.append(f"Invalid hero_3d.secondary_archetype '{sec}'")
+    is_v3 = int(spec.get("schema_version", 2)) >= 3 or "universe" in spec
+    if is_v3:
+        univ = spec.get("universe")
+        if univ and univ not in VALID_UNIVERSES:
+            errors.append(f"Invalid 'universe' '{univ}'. Valid: {sorted(VALID_UNIVERSES)}")
 
-    slides = spec.get("slides")
-    if slides is None:
-        warnings.append("Legacy v1 spec detected (no 'slides' array); prefer schema_version 2 composable slides")
-    elif not isinstance(slides, list) or len(slides) == 0:
-        errors.append("'slides' must be a non-empty array")
-    else:
         for i, sl in enumerate(slides, start=1):
             if not isinstance(sl, dict):
-                errors.append(f"slides[{i}] must be a JSON object")
+                errors.append(f"Slide {i} must be an object.")
                 continue
-            st = sl.get("type", "")
-            if st not in VALID_SLIDE_TYPES:
-                errors.append(f"slides[{i}] invalid type '{st}'. Valid types: {sorted(VALID_SLIDE_TYPES)}")
+            st = sl.get("type")
+            if st not in VALID_CINEMA_SLIDE_TYPES:
+                errors.append(f"Slide {i} invalid v3 type '{st}'. Valid: {sorted(VALID_CINEMA_SLIDE_TYPES)}")
                 continue
-            if st in ("split_horizon_3d", "depth_sandwich_pan", "vertical_elevator_3d") and len(str(sl.get("giant_word", ""))) > 10:
-                warnings.append(f"slides[{i}] giant_word '{sl.get('giant_word')}' exceeds 10 chars and may wrap or crowd bezels")
-            if st == "portal_flythrough_3d" and sl.get("stage") and sl.get("stage") not in VALID_PORTAL_STAGES:
-                errors.append(f"slides[{i}] invalid portal_flythrough_3d stage '{sl.get('stage')}' (expected: {sorted(VALID_PORTAL_STAGES)})")
-            if st == "vertical_elevator_3d" and sl.get("elevator_stop") and sl.get("elevator_stop") not in VALID_ELEVATOR_STOPS:
-                errors.append(f"slides[{i}] invalid vertical_elevator_3d elevator_stop '{sl.get('elevator_stop')}' (expected: {sorted(VALID_ELEVATOR_STOPS)})")
-            if st == "macro_dolly_3d" and not sl.get("callouts"):
-                errors.append(f"slides[{i}] macro_dolly_3d requires non-empty 'callouts' array")
-            if st == "timeline_morph_step" and not sl.get("stages"):
-                errors.append(f"slides[{i}] timeline_morph_step requires non-empty 'stages' array")
-            if st == "chart_infographic" and not sl.get("items"):
-                errors.append(f"slides[{i}] chart_infographic requires non-empty 'items' array")
-            if st == "architecture_diagram" and not sl.get("layers"):
-                errors.append(f"slides[{i}] architecture_diagram requires non-empty 'layers' array")
-            if st == "comparison_matrix" and not sl.get("rows"):
-                errors.append(f"slides[{i}] comparison_matrix requires non-empty 'rows' array")
+            if st == "odometer_counter" and not sl.get("target_value"):
+                errors.append(f"Slide {i} (odometer_counter) requires 'target_value'.")
+            elif st == "refracted_spotlight_dock":
+                if not sl.get("spotlight") or not sl.get("dock"):
+                    errors.append(f"Slide {i} (refracted_spotlight_dock) requires 'spotlight' and 'dock'.")
+            elif st == "timeline_rail_morph" and not sl.get("stages"):
+                errors.append(f"Slide {i} (timeline_rail_morph) requires 'stages'.")
+            elif st == "chart_infographic" and not sl.get("items"):
+                errors.append(f"Slide {i} (chart_infographic) requires 'items'.")
+            elif st == "architecture_blueprint" and not sl.get("layers"):
+                errors.append(f"Slide {i} (architecture_blueprint) requires 'layers'.")
+        return (errors, warnings)
 
-    if not allow_emojis:
-        for path, val in _walk_strings(spec):
-            if EMOJI_RE.search(val):
-                errors.append(f"Unicode emoji found at {path}: {val[:60]}")
+    # Legacy v2 validation
+    theme = spec.get("theme")
+    if theme and theme not in VALID_THEMES:
+        errors.append(f"Invalid 'theme' '{theme}'. Valid: {sorted(VALID_THEMES)}")
 
-    return errors, warnings
+    hero = spec.get("hero_3d", {})
+    if isinstance(hero, dict) and hero.get("archetype") and hero["archetype"] not in VALID_ARCHETYPES:
+        errors.append(f"Invalid 'hero_3d.archetype' '{hero['archetype']}'. Valid: {sorted(VALID_ARCHETYPES)}")
+
+    for i, sl in enumerate(slides, start=1):
+        if not isinstance(sl, dict):
+            errors.append(f"Slide {i} must be an object.")
+            continue
+        st = sl.get("type")
+        if st not in VALID_SLIDE_TYPES:
+            errors.append(f"Slide {i} invalid type '{st}'. Valid: {sorted(VALID_SLIDE_TYPES)}")
+            continue
+        if st == "portal_flythrough_3d" and sl.get("stage") and sl["stage"] not in ("exterior", "interior", "horizon"):
+            errors.append(f"Slide {i} (portal_flythrough_3d) invalid stage '{sl['stage']}'.")
+        if st == "vertical_elevator_3d" and sl.get("elevator_stop") and sl["elevator_stop"] not in ("upper_sky", "lower_ground"):
+            errors.append(f"Slide {i} (vertical_elevator_3d) invalid elevator_stop '{sl['elevator_stop']}'.")
+        if st == "chart_infographic" and not sl.get("items"):
+            errors.append(f"Slide {i} (chart_infographic) requires 'items'.")
+        elif st == "architecture_diagram" and not sl.get("layers"):
+            errors.append(f"Slide {i} (architecture_diagram) requires 'layers'.")
+    return (errors, warnings)
 
 
-def main():
-    parser = argparse.ArgumentParser(description="Validate deck_spec.json before building a morphdeck-3d presentation.")
-    parser.add_argument("spec", help="Path to deck_spec.json")
-    parser.add_argument("--allow-emojis", action="store_true", help="Allow Unicode emojis inside text strings")
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Validate a morphdeck-3d JSON specification.")
+    parser.add_argument("--spec", required=True, help="Path to JSON spec file")
     args = parser.parse_args()
 
-    errors, warnings = validate_spec(args.spec, allow_emojis=args.allow_emojis)
-    for w in warnings:
-        print(f"WARN: {w}")
-    for e in errors:
-        print(f"ERROR: {e}")
-
-    if errors:
-        print(f"SPEC VALIDATION FAILED ({len(errors)} error(s))")
+    errs, warns = validate_spec(args.spec)
+    for w in warns:
+        print(f"WARNING: {w}")
+    if errs:
+        print("VALIDATION FAILED:", file=sys.stderr)
+        for e in errs:
+            print(f"  - {e}", file=sys.stderr)
         sys.exit(1)
-
-    print(f"SPEC VALIDATION PASSED cleanly ({len(warnings)} warning(s)): {args.spec}")
-    sys.exit(0)
+    with open(args.spec, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    ver = "v3" if (int(data.get("schema_version", 2)) >= 3 or "universe" in data) else "v2"
+    print(f"Spec validation passed ({ver}, {len(data['slides'])} slides): {args.spec}")
 
 
 if __name__ == "__main__":

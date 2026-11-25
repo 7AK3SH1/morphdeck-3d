@@ -25,9 +25,18 @@ if SCRIPTS_DIR not in sys.path:
 
 from generate_subject_glb import ARCHETYPES, generate_subject_glb  # noqa: E402
 from inject_3d_studio_lighting import inject_3d_studio_lighting  # noqa: E402
+from prepare_cinema_assets import prepare_all  # noqa: E402
 from render_glb_preview import render_glb_to_image  # noqa: E402
 from render_studio_assets import generate_all  # noqa: E402
+from studio_cutout import (  # noqa: E402
+    render_cloud_sweep,
+    render_hollow_gold_frame,
+    render_organic_ink_drips,
+    render_silhouette_horizon,
+    render_soft_paper_cloud,
+)
 from validate_spec import validate_spec  # noqa: E402
+from build_cinema_crossplatform import build_cinema_crossplatform  # noqa: E402
 from build_deck_crossplatform import build_crossplatform_pptx  # noqa: E402
 from verify_deck import verify_pptx  # noqa: E402
 
@@ -188,6 +197,74 @@ class TestMorphDeck3D(unittest.TestCase):
             self.assertIn('r="40000"', out_xml)
             self.assertIn('<am3d:ptLight rad="0"><am3d:clr><a:scrgbClr r="92000"', out_xml)
             ET.fromstring(out_xml)
+
+    def test_v3_studio_cutout_generators(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            drips_p = render_organic_ink_drips(os.path.join(tmp, "drips.png"))
+            cloud_p = render_soft_paper_cloud(os.path.join(tmp, "paper_cloud.png"))
+            sweep_p = render_cloud_sweep(os.path.join(tmp, "cloud_sweep.png"))
+            sil_p = render_silhouette_horizon(os.path.join(tmp, "silhouette.png"))
+            frame_p = render_hollow_gold_frame(os.path.join(tmp, "hollow_frame.png"), frame_style="ornate_gold", border_px=84)
+
+            for p in (drips_p, cloud_p, sweep_p, sil_p, frame_p):
+                self.assertTrue(os.path.exists(p))
+                with Image.open(p) as im:
+                    self.assertEqual(im.mode, "RGBA")
+
+            # Hollow frame center aperture MUST be transparent (alpha == 0) and outer border opaque (alpha == 255)
+            with Image.open(frame_p) as hf:
+                arr = np.array(hf)
+                self.assertEqual(int(arr[hf.height // 2, hf.width // 2, 3]), 0)
+                self.assertEqual(int(arr[10, 10, 3]), 255)
+
+    def test_v3_cinema_crossplatform_offline_e2e(self):
+        spec = {
+            "schema_version": 3,
+            "universe": "documentary_press",
+            "brand": {"name": "Offline Dispatch", "monogram": "OD"},
+            "slides": [
+                {"type": "newspaper_dive", "stage": "frontpage", "headline": "Archival Test", "badge": "EDITION"},
+                {"type": "editorial_print_overlay", "overline": "CH 01", "headline": "Ink Overlay", "body": "Offline test."},
+                {"type": "odometer_counter", "overline": "RECORDS", "target_value": "204 800", "sublabel": "VERIFIED"},
+                {"type": "poster_depth_reveal", "giant_word": "1945", "use_hero_3d": False},
+                {"type": "picture_frame_pullback", "headline": "Gallery Frame", "subtitle": "Concentric pull-back"},
+                {"type": "closing_finale", "headline": "Complete", "summary": "Verified offline v3 deck.", "metrics": [{"value": "6", "label": "UNIVERSES"}]},
+            ],
+        }
+        errs, _ = validate_spec(spec)
+        self.assertEqual(errs, [])
+        with tempfile.TemporaryDirectory() as tmp:
+            spec_p = os.path.join(tmp, "v3_spec.json")
+            assets_d = os.path.join(tmp, "assets")
+            out_pptx = os.path.join(tmp, "v3_out.pptx")
+            with open(spec_p, "w", encoding="utf-8") as f:
+                json.dump(spec, f)
+            prepare_all(spec_p, assets_d)
+            build_cinema_crossplatform(spec_p, assets_d, out_pptx)
+            self.assertEqual(verify_pptx(out_pptx, require_3d=False), 0)
+
+    def test_v3_lighting_universes(self):
+        sample_xml = (
+            '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+            '<p:sld xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" '
+            'xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" '
+            'xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" '
+            'xmlns:p159="http://schemas.microsoft.com/office/powerpoint/2015/09/main" '
+            'xmlns:am3d="http://schemas.microsoft.com/office/drawing/2017/model3d">'
+            '<p:cSld><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr>'
+            '<p:grpSpPr/><mc:AlternateContent><mc:Choice Requires="am3d"><am3d:model3d><am3d:spPr/><am3d:extLst/></am3d:model3d></mc:Choice></mc:AlternateContent>'
+            '</p:spTree></p:cSld></p:sld>'
+        )
+        for univ in ("documentary_press", "architectural_portal", "commercial_studio"):
+            with tempfile.TemporaryDirectory() as tmp:
+                mock_pptx = os.path.join(tmp, f"{univ}.pptx")
+                with zipfile.ZipFile(mock_pptx, "w", zipfile.ZIP_DEFLATED) as z:
+                    z.writestr("ppt/slides/slide1.xml", sample_xml.encode("utf-8"))
+                self.assertEqual(inject_3d_studio_lighting(mock_pptx, theme=univ), 1)
+                with zipfile.ZipFile(mock_pptx, "r") as z:
+                    out_xml = z.read("ppt/slides/slide1.xml").decode("utf-8")
+                self.assertEqual(out_xml.count("<am3d:ptLight"), 3)
+                ET.fromstring(out_xml)
 
     def test_repository_hygiene_zero_emojis_zero_leaks(self):
         # Checked via byte decoding so this test file contains zero literal restricted strings.

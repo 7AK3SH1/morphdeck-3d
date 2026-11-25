@@ -1,0 +1,104 @@
+{
+  "schema_version": 3,
+  "universe": "documentary_press",
+  "brand": {
+    "name": "Atlantic Aviation Archive",
+    "monogram": "AAA"
+  },
+  "hero_3d": {
+    "source": "khronos",
+    "name": "AntiqueCamera"
+  },
+  "slides": [
+    {
+      "type": "newspaper_dive",
+      "stage": "frontpage",
+      "headline": "Atlantic Crossing Shatters Speed Records",
+      "newspaper_headline": "THE ATLANTIC GAZETTE",
+      "newspaper_subhead": "SPECIAL ARCHIVAL DISPATCH // TRANSOCEANIC ERA",
+      "dateline": "NEW YORK & PARIS  //  ARCHIVE EDITION NO. 42",
+      "archival_queries": [
+        "Wright Flyer"
+      ],
+      "columns": [
+        "AVIATION RECORD // Twin-engine endurance crossings cut maritime transit schedules from seven days to fourteen hours across North Atlantic corridors.",
+        "NAVIGATION // Celestial sextant fixes combined with directional radio beacons enabled continuous all-weather corridor tracking.",
+        "INDUSTRIAL SCALE // Precision optical telemetry and pressurized aluminum airframes ushered in modern global passenger flight."
+      ],
+      "badge": "SCROLL TO ZOOM EDITION"
+    },
+    {
+      "type": "newspaper_dive",
+      "stage": "masthead_spread",
+      "overline": "PRIMARY SOURCE  //  01",
+      "headline": "Anatomy of a Broadsheet Dive",
+      "body": "PowerPoint Morph scales the full 1920x1080 archival newspaper texture smoothly by 2.5x while floating a feathered paper cloud into the reading zone."
+    },
+    {
+      "type": "editorial_print_overlay",
+      "overline": "ARCHIVAL DISPATCH  //  02",
+      "headline": "Organic Ink & Living Cutouts",
+      "body": "Fluid crimson ink drips cascade from the top edge while high-poly studio hardware glides across feathered editorial typography.",
+      "portrait_cutout_glb": {
+        "source": "khronos",
+        "name": "AntiqueCamera",
+        "rx": 12.0,
+        "ry": -28.0,
+        "rz": 2.0
+      },
+      "badge": "EDITORIAL DEPTH"
+    },
+    {
+      "type": "odometer_counter",
+      "bg_hex": "#08090C",
+      "overline": "DOCUMENTED TRANSATLANTIC FLIGHTS",
+      "target_value": "1 196 164",
+      "sublabel": "VERIFIED LOGBOOK ENTRIES (1936 - 1945)"
+    },
+    {
+      "type": "flyby_wipe",
+      "overline": "AERIAL CORRIDOR  //  04",
+      "headline": "Diagonal Cloud Sweep",
+      "body": "Volumetric cloud geometry sweeps diagonally across alpine glaciers while studio optical instrumentation rotates into focus.",
+      "bg_query": "Matterhorn peak snow",
+      "flyby_cutout_glb": {
+        "source": "khronos",
+        "name": "Lantern",
+        "rx": 8.0,
+        "ry": 26.0,
+        "rz": -10.0
+      },
+      "use_hero_3d": true
+    },
+    {
+      "type": "cutout_map_stage",
+      "overline": "CARTOGRAPHIC STAGE  //  05",
+      "headline": "Route & Telemetry",
+      "body": "Open-license historical cartography glides in on the left while KPI tiles ground exact endurance range and payload capacity.",
+      "map_query": "Theatrum Orbis Terrarum world map",
+      "kpis": [
+        { "value": "6,420", "label": "NAUTICAL MILES" },
+        { "value": "14.2H", "label": "CRUISE TRANSIT" }
+      ]
+    },
+    {
+      "type": "poster_depth_reveal",
+      "giant_word": "1945",
+      "poster_bg_query": "airplane museum hangar",
+      "use_hero_3d": true
+    },
+    {
+      "type": "picture_frame_pullback",
+      "overline": "GALLERY PERSPECTIVE  //  07",
+      "headline": "True 4.4x Concentric Frame Pull-Back",
+      "subtitle": "The full poster scales straight into the open-aperture gold museum frame on the gallery wall.",
+      "wall_query": "Louvre gallery hall painting room",
+      "frame_style": "ornate_gold",
+      "frame_x": 348,
+      "frame_y": 42,
+      "frame_w": 264,
+      "frame_h": 148,
+      "cta": "ARCHIVE COMPLETE"
+    }
+  ]
+}

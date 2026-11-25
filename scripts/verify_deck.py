@@ -27,6 +27,7 @@ def verify_pptx(
     renders_dir: str = None,
     require_3d: bool = True,
     allow_emojis: bool = False,
+    require_lighting: bool = False,
 ) -> int:
     failures = []
     if not os.path.exists(pptx_path):
@@ -87,6 +88,8 @@ def verify_pptx(
         glb_sizes = [(g, z.getinfo(g).file_size) for g in glbs]
         if require_3d and not glbs:
             failures.append("No embedded .glb 3D subject model found in ppt/media/")
+        if require_lighting and model3d_count > 0 and pt_light_count < model3d_count * 3:
+            failures.append(f"Expected 3-point lighting (<am3d:ptLight >= {model3d_count * 3}), found {pt_light_count}")
 
     # 4. Optional 1080p Render PNG & non-blank variance check
     if renders_dir:
@@ -127,9 +130,10 @@ def main():
     parser.add_argument("pptx", help="Path to generated .pptx presentation")
     parser.add_argument("--renders-dir", help="Optional directory containing exported slide_1..slide_N.png renders")
     parser.add_argument("--crossplatform", action="store_true", help="Allow cross-platform 2D-rendered 3D builds without binary .glb embedding")
+    parser.add_argument("--require-lighting", action="store_true", help="Require >= 3 studio <am3d:ptLight> nodes per <am3d:model3d>")
     parser.add_argument("--allow-emojis", action="store_true", help="Allow Unicode emojis in slide text")
     args = parser.parse_args()
-    sys.exit(verify_pptx(args.pptx, args.renders_dir, require_3d=not args.crossplatform, allow_emojis=args.allow_emojis))
+    sys.exit(verify_pptx(args.pptx, args.renders_dir, require_3d=not args.crossplatform, allow_emojis=args.allow_emojis, require_lighting=args.require_lighting))
 
 
 if __name__ == "__main__":

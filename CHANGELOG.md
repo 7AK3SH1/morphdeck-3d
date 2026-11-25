@@ -2,6 +2,17 @@
 
 All notable changes to **morphdeck-3d** will be documented in this file.
 
+## [3.0.0] - 2026-11-25 - Cinema-Morph & Photorealistic 3D
+
+### Added
+- **6 Cinema-Morph Visual Universes**: `documentary_press`, `architectural_portal`, `sculptural_museum`, `commercial_studio`, `executive_swiss`, and `editorial_pop`.
+- **17 Signature Morph & Optical Slide Engines** (`scripts/prepare_cinema_assets.py` + `scripts/build_cinema_deck.ps1` + `scripts/build_cinema_crossplatform.py`):
+  - `newspaper_dive` (`frontpage` -> `masthead_spread` -> `collage`), `editorial_print_overlay` (organic liquid ink drips via `render_organic_ink_drips` + feathered paper cloud reading window + 3D cutout), `odometer_counter` (black curtain wipe + masked multi-column vertical digit reels + crimson horizon silhouette), `flyby_wipe` (diagonal volumetric cloud sweep + contrast scrim + rotating object), `cutout_map_stage` (gliding cartographic map + KPI panel), `poster_depth_reveal` (dropping accent monolith + behind-subject giant display year), and `picture_frame_pullback` (true `4.4x` concentric camera pull-back shrinking the live poster into a hollow transparent-aperture museum gold frame).
+  - Real photography `real_portal_flythrough`, `refracted_spotlight_dock`, `parchment_3d_split`, `vertical_world_elevator` (`1920x2160` sky-split ascent/descent), `rotational_drift_3d`, `swiss_bento_morph`, `timeline_rail_morph`, `chart_infographic`, `architecture_blueprint`, and `closing_finale`.
+- **Real High-Poly CC0 `.glb` Resolver (`scripts/fetch_real_glb.py`)**: Resolves authentic PBR `.glb` geometry from Khronos `glTF-Sample-Assets`, Poly Haven CC0 photogrammetry (packed directly to binary `.glb`), and NASA 3D Resources instead of synthetic toy primitives.
+- **Open-License Photography Fetcher & Studio Cutout Engine (`scripts/fetch_real_photo.py` + `scripts/studio_cutout.py`)**: Fetches real 4K architecture, gallery, alpine, and historical cartography via Wikimedia Commons API (`fetch_wikimedia_photo`), plus perimeter flood-fill studio segmentation, architectural portal punching, sky splitting, organic ink drips, soft paper clouds, cloud banks, horizon silhouettes, and hollow museum frames.
+- **Expanded Turnkey CLI (`scripts/morphdeck.py`)**: Added `universes`, `fetch-3d`, `fetch-photo`, `cutout`, unified v2/v3 `build` routing, and `--require-lighting` OpenXML QA verification.
+
 ## [2.0.0] - 2026-11-25 - Cinema Motion & Studio Optics
 
 ### Added

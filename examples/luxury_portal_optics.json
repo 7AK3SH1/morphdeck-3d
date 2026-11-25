@@ -1,0 +1,103 @@
+{
+  "schema_version": 3,
+  "universe": "architectural_portal",
+  "brand": {
+    "name": "Helios Optical Pavilions",
+    "monogram": "HOP"
+  },
+  "hero_3d": {
+    "source": "khronos",
+    "name": "AntiqueCamera"
+  },
+  "slides": [
+    {
+      "type": "real_portal_flythrough",
+      "stage": "exterior",
+      "overline": "PORTAL CHOREOGRAPHY  //  CHAPTER 01",
+      "headline": "Look Through Authentic Architecture",
+      "portal_outer_query": "Louvre Pyramid courtyard",
+      "portal_inner_query": "Uffizi gallery Florence hall",
+      "portal_bg_query": "Matterhorn peak snow",
+      "outer_box": [0.27, 0.18, 0.73, 0.82],
+      "inner_box": [0.18, 0.12, 0.82, 0.88],
+      "bottom_cue": "REAL OPEN-LICENSE PHOTOGRAPHY + HIGH-POLY GLB"
+    },
+    {
+      "type": "real_portal_flythrough",
+      "stage": "interior",
+      "overline": "SPATIAL ARRIVAL  //  CHAPTER 02",
+      "headline": "Inside the Optical Atrium",
+      "body": "Punched aperture layers zoom past the viewer while frosted surface glass carries core facility metrics.",
+      "kpis": [
+        { "value": "f/1.4", "label": "APERTURE RATING" },
+        { "value": "48MP", "label": "MEDIUM FORMAT" }
+      ]
+    },
+    {
+      "type": "parchment_3d_split",
+      "giant_word": "OPTICS",
+      "left_label": "BRASS & LEATHER",
+      "left_text": "Machined brass dials, bellows mechanics, and coated glass elements.",
+      "right_label": "ALTITUDE PROOF",
+      "right_text": "Tested across alpine sub-zero thermal gradients without calibration drift.",
+      "lower_query": "Matterhorn peak snow",
+      "kpis": [
+        { "value": "-32C", "label": "THERMAL FLOOR" },
+        { "value": "0.02mm", "label": "TOLERANCE" },
+        { "value": "194G", "label": "CHASSIS MASS" },
+        { "value": "CC0", "label": "OPEN GLB" }
+      ]
+    },
+    {
+      "type": "vertical_world_elevator",
+      "elevator_stop": "upper_sky",
+      "giant_word": "ALPINE",
+      "overline": "ELEVATOR STAGE  //  ASCENT",
+      "headline": "Sky-Split Depth Typography",
+      "body": "Display typography nests behind the segmented mountain skyline while the 3D optical assembly orbits to the right.",
+      "panorama_query": "Matterhorn peak snow",
+      "badge": "SKY LAYER LOCKED"
+    },
+    {
+      "type": "vertical_world_elevator",
+      "elevator_stop": "lower_ground",
+      "giant_word": "GROUND",
+      "overline": "ELEVATOR STAGE  //  DESCENT",
+      "headline": "Continuous Camera Rig",
+      "cards": [
+        { "value": "4.2s", "title": "Morph Travel Time", "desc": "Shared canvas gliders maintain unbroken camera continuity across slides." },
+        { "value": "3-PT", "title": "Studio Light Rig", "desc": "Key, fill, and rim scRGB emitters upgrade <am3d:model3d> shading." },
+        { "value": "0%", "title": "Calibration Balls", "desc": "Strictly genuine architectural and landscape photography." }
+      ]
+    },
+    {
+      "type": "refracted_spotlight_dock",
+      "dock_index": 1,
+      "bg_query": "Uffizi gallery Florence hall",
+      "spotlight": {
+        "tag": "MATERIAL STUDY  //  02",
+        "title": "Backdrop-Refracted Glass Dock",
+        "subtitle": "Gaussian blur sliced directly from the active slide photo",
+        "body": "Each dock panel refracts its exact underlying pixel coordinates and carries a gliding active highlight frame."
+      },
+      "dock": [
+        { "title": "Exterior", "subtitle": "Portal Entry", "query": "Louvre Pyramid courtyard" },
+        { "title": "Gallery", "subtitle": "Optics Hall", "query": "Uffizi gallery Florence hall" },
+        { "title": "Glacier", "subtitle": "High Altitude", "query": "Matterhorn peak snow" },
+        { "title": "Studio", "subtitle": "PBR Close-Up", "query": "Louvre gallery hall painting room" }
+      ]
+    },
+    {
+      "type": "closing_finale",
+      "overline": "ARCHITECTURE & OPTICS",
+      "headline": "Every Frame Anchored in Reality",
+      "summary": "High-resolution open-license locations combined with genuine glTF 2.0 3D models and zero decorative clutter.",
+      "metrics": [
+        { "value": "6", "label": "VISUAL UNIVERSES" },
+        { "value": "17", "label": "MORPH ENGINES" },
+        { "value": "3D", "label": "KHRONOS GLB" }
+      ],
+      "cta": "BUILD YOUR OWN DECK"
+    }
+  ]
+}

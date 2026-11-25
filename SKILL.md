@@ -1,84 +1,67 @@
 ---
 name: morphdeck-3d
 description: >
-  Project-adaptive 3D glTF + Morph PowerPoint presentation engineering engine
-  for AI coding agents. Generates 10 original procedural PBR 3D .glb archetypes
-  tailored to each project domain, 7 themes, 19 composable Morph slide methods
-  (optical portal fly-throughs, 2-stop vertical world elevators, 4-layer Depth
-  Sandwich, 1.55x macro dolly callouts, backdrop-refracted glass docks),
-  3-point colored <am3d:ptLight> studio lighting, and verified Windows COM +
-  Cross-Platform OpenXML builds.
+  Cinema-Morph PowerPoint engineering skill for AI coding agents across any
+  domain (historical documentaries, luxury architecture, consumer hardware,
+  SaaS, biotech, executive decks). Features 6 Visual Universes, 17 native
+  PowerPoint Morph engines (broadsheet newspaper dives, organic ink drips,
+  rolling odometer counters, architectural portal fly-throughs, diagonal cloud
+  fly-by wipes, 4.4x concentric picture-frame pull-backs, sky-split vertical
+  world elevators, backdrop-refracted glass docks), real high-poly CC0 .glb
+  models (Khronos, Poly Haven, NASA), and open-license 4K photography via
+  Wikimedia Commons. Zero toy 3D primitives. Zero emojis.
 license: Apache-2.0
 metadata:
   author: Mohamed S. Sissoko (7AK3SH1)
-  version: "2.0.0"
+  version: "3.0.0"
   repository: https://github.com/7AK3SH1/morphdeck-3d
 ---
 
-# morphdeck-3d
+# morphdeck-3d v3.0.0 — Cinema-Morph & Photorealistic 3D
 
-Build **100% original, from-scratch 3D + Morph PowerPoint presentations** with zero recycled templates and zero Unicode emojis:
-1. **Subject-Linked 3D `.glb` Hero (`hero_3d.archetype`)**: Automatically selects and generates a multi-material PBR 3D glTF 2.0 object directly matching the project's subject (`architectural_pavilion`, `ai_quantum_server`, `energy_turbine_core`, `product_drop_capsule`, `aerospace_orbital_craft`, `executive_globe_monolith`, `biotech_helix_core`, `fintech_vault_prism`, `smartphone_pro`, `laptop_studio`, or `custom`), illuminated with a theme-calibrated 3-point `<am3d:ptLight>` studio rig.
-2. **Continuous 3D Morph & Cinema Camera Motion**: Keeps `!!Phone3D` persistent across every slide (via PowerPoint COM `.Duplicate().Item(1)` with `ppEffectMorph` on Windows, or studio PBR renders + ECMA-376 `<mc:AlternateContent><p159:morph/>` XML on macOS/Linux), combining optical portal aperture fly-throughs (`4.6x` bulkhead zoom), `1920x2160` 2-stop vertical world elevators (`-520 pt` camera pan), staggered off-canvas velocity cascades, orthogonal L-trajectory exits, and vertical `srcRect` curtain-wipe image reveals.
-3. **4-Layer Depth Sandwich & Backdrop-Refracted Glass**: Layers atmospheric horizons behind giant occluded display type (`!!pan_bg` -> `!!pan_word` -> `!!pan_fg` -> `!!Phone3D`), paired with true Gaussian backdrop-refracted frosted glass docks and contact shadows.
-4. **Distinct Architecture Per Project**: Never reuse the exact same slide sequence across two projects. Pick the archetype, theme, slide count (6-8 slides), and 3D Morph choreography to fit the domain.
+Build **authentic, domain-adaptive Cinema-Morph PowerPoint presentations** with zero generic SaaS templates, zero blocky primitive toy 3D, zero HDRI calibration spheres, and zero Unicode emojis:
+
+1. **6 Distinct Visual Universes**: Pick the palette, typography, paper/obsidian depth, and lighting profile from the project's true subject (`documentary_press`, `architectural_portal`, `sculptural_museum`, `commercial_studio`, `executive_swiss`, `editorial_pop`).
+2. **17 Native PowerPoint Morph Engines**: Compose distinct narrative arcs per deck:
+   - *Editorial & Documentary*: `newspaper_dive`, `editorial_print_overlay` (organic liquid ink drips + feathered paper cloud), `odometer_counter` (black curtain wipe + masked rolling digit reels + silhouette horizon), `flyby_wipe` (diagonal volumetric cloud sweep), `cutout_map_stage`, `poster_depth_reveal`, `picture_frame_pullback` (true `4.4x` concentric hollow-frame wall pull-back).
+   - *Spatial, Product & Technical*: `real_portal_flythrough`, `refracted_spotlight_dock`, `parchment_3d_split`, `vertical_world_elevator` (`1920x2160` sky-split ascent/descent), `rotational_drift_3d`, `swiss_bento_morph`, `timeline_rail_morph`, `chart_infographic`, `architecture_blueprint`, `closing_finale`.
+3. **Real High-Poly CC0 `.glb` + 4K Open-License Photography**:
+   - Use `scripts/fetch_real_glb.py` (`Khronos glTF-Sample-Assets`, `Poly Haven` glTF->GLB packer, `NASA 3D Resources`) or GLB-rendered RGBA cutouts (`*_cutout_glb`) instead of blocky toy primitives. Reserve `smartphone_pro`/`laptop_studio` strictly for software UI screens.
+   - Use `scripts/fetch_real_photo.py` (Wikimedia Commons API queries) or user-supplied imagery for real portals, maps, galleries, and alpine horizons.
 
 ---
 
-## Step 0: Project Diagnosis Matrix (Archetype + Theme + Choreography)
+## Step 0: Domain-to-Universe Routing Matrix
 
-| Project Domain | `hero_3d.archetype` | `theme` | Distinct 3D + Morph Slide Choreography |
+| Project Domain | Recommended `universe` | Real 3D Source (`hero_3d`) | Signature Slide Sequence (Vary Per Project!) |
 |---|---|---|---|
-| **Architecture, Real Estate, Eco-Design** | `architectural_pavilion` | `editorial_ivory` | `cover_hero(asymmetric_split)` -> `split_horizon_3d` -> `macro_dolly_3d` (1.55x dolly + callouts) -> `timeline_morph_step` x3 -> `closing_finale(editorial_statement)` |
-| **AI, Cloud, Cybersecurity, Backend** | `ai_quantum_server` (+ `laptop_studio`) | `cyber_blueprint` | `cover_hero(centered_clean)` -> `kpi_bento(left_anchor)` -> `architecture_diagram` -> `chart_infographic` x2 -> `macbook_studio_3d` -> `closing_finale(dual_3d)` |
-| **Biotech, Genomics, Pharma, MedTech** | `biotech_helix_core` | `biotech_luminance` | `cover_hero(centered_clean)` -> `depth_sandwich_pan(wide)` -> `depth_sandwich_pan(zoom_right)` -> `macro_dolly_3d` -> `chart_infographic(radial_rings)` -> `closing_finale` |
-| **CleanTech, Energy, Solar, Smart Grids** | `energy_turbine_core` | `obsidian_kinetic` | `cover_hero(asymmetric_split)` -> `split_horizon_3d` -> `macro_dolly_3d` -> `chart_infographic(comparison_bars)` -> `timeline_morph_step` x2 -> `closing_finale` |
-| **FinTech, Security, Cryptography** | `fintech_vault_prism` | `monochrome_luxury` | `cover_hero(centered_clean)` -> `problem_solution_split` -> `architecture_diagram` -> `comparison_matrix` -> `closing_finale(executive_cta)` |
-| **Product Launch, Retail Drops** | `product_drop_capsule` | `kinetic_poster` | `cover_hero(bold_poster)` -> `problem_solution_split` -> `kpi_bento(top_hero_strip)` -> `spotlight_dock` x2 (refracted dock + `srcRect` wipe + L-exit) -> `closing_finale(editorial_statement)` |
-| **FinOps, Corporate Strategy, Consulting** | `executive_globe_monolith` | `executive_clean` | `cover_hero(asymmetric_split)` -> `chapter_divider_morph` -> `kpi_bento(top_hero_strip)` -> `chart_infographic` -> `comparison_matrix` -> `closing_finale(executive_cta)` |
-| **Aerospace, Mobility, Drones, Defense** | `aerospace_orbital_craft` | `obsidian_kinetic` | `portal_flythrough_3d(exterior)` -> `portal_flythrough_3d(interior)` -> `vertical_elevator_3d(upper_sky)` -> `vertical_elevator_3d(lower_ground)` -> `macro_dolly_3d` -> `closing_finale` |
-| **Mobile + Web Consumer App / SaaS** | `smartphone_pro` (+ `laptop_studio`) | `obsidian_kinetic` | `cover_hero(3d_staged)` -> `split_horizon_3d` -> `orbit_steps_3d(upper_stats)` -> `orbit_steps_3d(obsidian_steps)` -> `macbook_studio_3d` -> `closing_finale(dual_3d)` |
+| **History, Documentary, Investigative, Media** | `documentary_press` | `khronos/AntiqueCamera` or `nasa/...` | `newspaper_dive` x2 -> `editorial_print_overlay` -> `odometer_counter` -> `flyby_wipe` -> `cutout_map_stage` -> `poster_depth_reveal` -> `picture_frame_pullback` |
+| **Luxury Architecture, Optics, Real Estate** | `architectural_portal` | `khronos/AntiqueCamera` or `polyhaven/marble_bust_01` | `real_portal_flythrough(exterior)` -> `real_portal_flythrough(interior)` -> `parchment_3d_split` -> `vertical_world_elevator` x2 -> `refracted_spotlight_dock` -> `closing_finale` |
+| **Footwear, Hardware, Automotive, Apparel** | `commercial_studio` | `khronos/MaterialsVariantsShoe` / `CarConcept` / `BoomBox` | `poster_depth_reveal` -> `rotational_drift_3d` -> `swiss_bento_morph` -> `chart_infographic` -> `timeline_rail_morph` -> `closing_finale` |
+| **Museums, Culture, Luxury Brand Storytelling** | `sculptural_museum` | `khronos/DragonAttenuation` or `polyhaven` scan | `poster_depth_reveal` -> `picture_frame_pullback` -> `parchment_3d_split` -> `refracted_spotlight_dock` -> `closing_finale` |
+| **Enterprise Board, FinOps, Strategy** | `executive_swiss` | `khronos/ABeautifulGame` or `SheenChair` | `swiss_bento_morph` -> `timeline_rail_morph` -> `chart_infographic` -> `architecture_blueprint` -> `closing_finale` |
+| **Consumer Creators, Music, Gaming Drops** | `editorial_pop` | `khronos/DamagedHelmet` or `BoomBox` | `editorial_print_overlay` -> `odometer_counter` -> `flyby_wipe` -> `rotational_drift_3d` -> `closing_finale` |
 
----
-
-## Hard Bans
-
-- **Never use `smartphone_pro`/`laptop_studio` as the sole hero for non-software topics** (e.g., architecture, biotech, clean energy). Always link `hero_3d.archetype` to the project subject.
-- **Never skip verification**: always run `validate_spec.py` before build and `verify_deck.py` after build (`0` XML errors, `0` external links, `<mc:AlternateContent>` + `<p159:morph>` on every slide, `0` emojis).
-- **Never insert Unicode emojis** inside JSON specs, headings, labels, or `.pptx` text runs.
-- **Photorealistic Photography Rule**: Whenever project photos exist or an image generation tool (`image-generator`) is available, populate `assets.horizon_photo`, `assets.upper_photo`, and `spotlights[*].portrait_image` with real 16:9 visuals so `render_studio_assets.py` builds true photographic Split-Horizons and 4-Layer Depth Sandwiches.
+Full schema & field specifications: [references/universes-and-transitions-bible.md](references/universes-and-transitions-bible.md).
 
 ---
 
 ## Turnkey Workflow
 
-Discover all capabilities first if needed:
 ```bash
-python scripts/morphdeck.py list
+# 1. Inspect universes & slide engines
+python scripts/morphdeck.py universes
+
+# 2. Fetch or test a real CC0 .glb or 4K Wikimedia photograph
+python scripts/morphdeck.py fetch-3d --auto "sneaker" --out work/hero.glb
+python scripts/morphdeck.py fetch-photo --query "Louvre gallery hall" --out work/wall.png
+
+# 3. Validate JSON spec (v2 or v3)
+python scripts/morphdeck.py validate --spec work/deck_spec.json
+
+# 4. Build PPTX + inject 3-point <am3d:ptLight> + export 1080p PNGs + verify XML
+python scripts/morphdeck.py build --spec work/deck_spec.json --out Output.pptx --export-dir work/renders
 ```
 
-### Step 1: Initialize & Author `deck_spec.json`
-```bash
-python scripts/morphdeck.py init --template ai --output work/deck_spec.json
-```
-Edit `work/deck_spec.json` to match the project topic, character limits in [references/themes-and-methods-catalog.md](references/themes-and-methods-catalog.md), and real/generated photography paths.
-
-### Step 2: Validate, Render, Build & Verify in One Command
-```bash
-python scripts/morphdeck.py build work/deck_spec.json --out Output_Presentation.pptx --renders work/renders
-```
-- On **Windows with Microsoft PowerPoint**, `--engine auto` uses PowerPoint COM (`scripts/build_deck.ps1 -SkipExport`), injects a theme-calibrated 3-point `<am3d:ptLight>` studio lighting rig via `scripts/inject_3d_studio_lighting.py`, re-opens via COM (`-ExportOnly`) to export `1920x1080` lit slide PNGs into `work/renders`, and enforces `GLBs >= 1` via `verify_deck.py`.
-- On **macOS / Linux / CI** (or with `--engine crossplatform`), `scripts/build_deck_crossplatform.py` + `scripts/render_glb_preview.py` renders PBR studio views for every 3D camera angle and packages an OpenXML-compliant Morph `.pptx`.
-
-### Step 3: Visual PNG Inspection
-When running on Windows COM with exported renders (`work/renders/slide_*.png`), visually inspect the rendered PNGs before final delivery to confirm zero text clipping, high contrast, and crisp 3D framing.
-
-### Standalone 3D Tools
-- Preview any archetype in seconds without PowerPoint:
-  ```bash
-  python scripts/morphdeck.py preview-3d --archetype biotech_helix_core --brand "HELIXIS" --accent1 "#10B981" --output preview.png
-  ```
-- Bake a UI screenshot onto any external custom `.glb`:
-  ```bash
-  python scripts/bake_glb_screen.py --input custom.glb --mesh DisplayMesh --material 2 --image ui.png --output baked.glb
-  ```
+- **Windows + PowerPoint**: Uses `scripts/build_cinema_deck.ps1` COM automation, injects 3-point `<am3d:ptLight>` studio rigs via `scripts/inject_3d_studio_lighting.py`, exports crisp `1920x1080` PNGs via `-ExportOnly`, and runs `verify_deck.py --require-lighting`. Always inspect the rendered PNGs before finishing.
+- **macOS / Linux / CI**: Automatically uses `scripts/build_cinema_crossplatform.py` + `scripts/render_glb_preview.py` to produce valid ECMA-376 Morph OpenXML `.pptx` packages.

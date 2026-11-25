@@ -1,0 +1,85 @@
+{
+  "schema_version": 3,
+  "universe": "commercial_studio",
+  "brand": {
+    "name": "Stride Carbon Lab",
+    "monogram": "SCL"
+  },
+  "hero_3d": {
+    "source": "khronos",
+    "name": "MaterialsVariantsShoe"
+  },
+  "slides": [
+    {
+      "type": "poster_depth_reveal",
+      "giant_word": "STRIDE",
+      "use_hero_3d": true
+    },
+    {
+      "type": "rotational_drift_3d",
+      "overline": "FOOTWEAR ENGINEERING  //  01",
+      "headline": "Macro Material Variants in True 3D",
+      "callouts": [
+        { "title": "Multi-Layer Knit Upper", "desc": "Directional tension zones lock the midfoot during rapid lateral cuts." },
+        { "title": "Dual-Density Soleplate", "desc": "Tuned forefoot propulsion geometry paired with high-abrasion tread." },
+        { "title": "3-Point Studio Rim Rig", "desc": "Warm amber key and cool cyan rim lights sculpt stitched leather relief." }
+      ]
+    },
+    {
+      "type": "swiss_bento_morph",
+      "overline": "PERFORMANCE BENCHMARK  //  02",
+      "headline": "Asymmetric Telemetry Grid",
+      "hero_tile": {
+        "label": "ENERGY RETURN",
+        "value": "88%",
+        "title": "Validated Under Dynamic Stride Load",
+        "desc": "Full-length composite midsole maintains rebound stability past 500km."
+      },
+      "tiles": [
+        { "label": "MASS", "value": "212g", "desc": "Men's size US 9 single-shoe weight." },
+        { "label": "DROP", "value": "6.0mm", "desc": "Balanced heel-to-toe transition offset." },
+        { "label": "GRIP", "value": "1.14u", "desc": "Wet asphalt traction coefficient." }
+      ]
+    },
+    {
+      "type": "chart_infographic",
+      "chart_type": "comparison_bars",
+      "overline": "LAB TELEMETRY  //  03",
+      "headline": "Generation II vs Previous Flagship",
+      "items": [
+        { "label": "Peak Forefoot Rebound", "baseline": 74, "value": 88, "unit": "%", "delta": "+14 PTS" },
+        { "label": "Torsional Stiffness", "baseline": 62, "value": 84, "unit": "Nm", "delta": "+35%" },
+        { "label": "Upper Breathability", "baseline": 68, "value": 92, "unit": "CFM", "delta": "+35%" }
+      ],
+      "highlight": {
+        "value": "0.18s",
+        "label": "GROUND CONTACT",
+        "desc": "Faster toe-off cadence across 10K tempo intervals."
+      }
+    },
+    {
+      "type": "timeline_rail_morph",
+      "active_index": 2,
+      "overline": "LAUNCH ROADMAP  //  04",
+      "headline": "Global Drop Sequence",
+      "stages": [
+        { "code": "Q1", "label": "PROTO", "metric": "42", "metric_label": "LAB ITERATIONS", "title": "Last Geometry Lock", "summary": "Digital fit scans across 400 runners finalized toe-box splay clearance." },
+        { "code": "Q2", "label": "TRIALS", "metric": "12K", "metric_label": "TEST KILOMETERS", "title": "Road Durability Validation", "summary": "Continuous wet-and-dry road wear testing with zero delamination." },
+        { "code": "Q3", "label": "DROP", "metric": "50K", "metric_label": "LAUNCH PAIRS", "title": "Flagship Retail Release", "summary": "Simultaneous release across flagship studios and digital flagship app." },
+        { "code": "Q4", "label": "CUSTOM", "metric": "18", "metric_label": "VARIANT PACKS", "title": "Bespoke Variant Studio", "summary": "Expanded leather and knit colorways unlocked via glTF material variants." }
+      ]
+    },
+    {
+      "type": "closing_finale",
+      "overline": "COMMERCIAL STUDIO SHOWCASE",
+      "headline": "Engineered With Real High-Poly 3D",
+      "summary": "Built natively with Khronos PBR GLB geometry, studio 3-point lighting, and smooth PowerPoint Morph choreography.",
+      "metrics": [
+        { "value": "212g", "label": "FEATHERWEIGHT" },
+        { "value": "88%", "label": "ENERGY RETURN" },
+        { "value": "PBR", "label": "REAL GLB 3D" }
+      ],
+      "cta": "MORPHDECK-3D V3.0"
+    }
+  ]
+}

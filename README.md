@@ -2,69 +2,80 @@
 
 # MorphDeck 3D (`morphdeck-3d`)
 
-**Cinematic 3D glTF + Morph PowerPoint Engineering Skill for AI Coding Agents**
+**Cinema-Morph & Photorealistic 3D PowerPoint Engineering Skill for AI Coding Agents**
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-2.0.0_Cinema_Motion-F97316.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/Version-3.0.0_Cinema_Morph-E11D48.svg)](CHANGELOG.md)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB.svg)](pyproject.toml)
-[![3D Archetypes](https://img.shields.io/badge/3D_Archetypes-10_Procedural_GLB-8B5CF6.svg)](#10-procedural-pbr-3d-glb-archetypes-zero-third-party-binaries)
-[![Slide Methods](https://img.shields.io/badge/Slide_Methods-19_Composable_Morph-EC4899.svg)](#7-themes--19-slide-methods)
-[![Platform](https://img.shields.io/badge/Platform-Windows_COM_%7C_macOS_%7C_Linux-10B981.svg)](#pipeline-architecture)
+[![Universes](https://img.shields.io/badge/Visual_Universes-6_Distinct_Aesthetics-8B5CF6.svg)](#6-visual-universes)
+[![Morph Engines](https://img.shields.io/badge/Morph_Engines-17_Cinema_Transitions-EC4899.svg)](#17-cinema-morph-slide-engines)
+[![Real 3D](https://img.shields.io/badge/3D_Assets-Khronos_%7C_Poly_Haven_%7C_NASA_GLB-10B981.svg)](#real-high-poly-cc0-3d--open-license-4k-photography)
 [![Agent Skills](https://img.shields.io/badge/Agent_Skill-Antigravity_%7C_Claude_%7C_Codex_%7C_Cursor-F59E0B.svg)](#quickstart-installation)
 
-![MorphDeck 3D Showcase Banner](docs/showcase/hero_banner.png)
+![MorphDeck 3D v3 Showcase Banner](docs/showcase/hero_banner.png)
 
 </div>
 
 ---
 
-## Why MorphDeck 3D?
+## Why MorphDeck 3D v3.0.0?
 
-Most AI-generated slide tools output flat 2D boxes with static bullet lists and recycled color palettes. **MorphDeck 3D** is an open-source Agent Skill and dual-engine presentation pipeline designed to engineer **cinema-grade 3D `.glb` + PowerPoint Morph decks from scratch** -- tailored automatically to the subject, industry, visual aesthetic, and narrative cadence of each project.
+Most AI presentation tools produce identical SaaS templates, repetitive bullet boxes, or synthetic primitive 3D toys. **MorphDeck 3D v3.0.0** is an open-source Agent Skill and dual-engine OpenXML/COM pipeline engineered to craft **documentary, architectural, museum, sneaker-drop, and executive decks** using **native PowerPoint Morph choreography, real high-poly CC0 `.glb` 3D geometry, and genuine open-license photography**.
 
-| Feature | Generic AI Slide Generators | MorphDeck 3D v2.0.0 (`morphdeck-3d`) |
+| Capability | Generic AI Slide Generators | MorphDeck 3D v3.0.0 (`morphdeck-3d`) |
 | :--- | :--- | :--- |
-| **3D Visual Centerpiece** | Flat stock icons or static screenshots | **10 original procedural PBR glTF 2.0 (`.glb`) 3D models** lit by a theme-calibrated **3-point colored `<am3d:ptLight>` studio rig** |
-| **Transitions & Camera Motion** | Hard cuts or broken raw `<p159:morph>` tags | **Optical Portal Fly-Throughs (`4.6x` aperture zoom)**, **2-Stop Vertical World Elevators (`-520 pt` pan)**, **`srcRect` Curtain-Wipe Reveals**, and **Staggered Off-Canvas Velocity Cascades** |
-| **Slide Depth & Glass** | Flat backgrounds + opaque boxes | **4-Layer Depth Sandwich** + **True Backdrop-Refracted Frosted Glass (`GaussianBlur(24)` + specular rim)** |
-| **Structural Originality** | Same repetitive slide outline every time | **19 composable slide methods** & **7 distinct theme systems** diagnosed per project in Step 0 |
-| **OS Support** | Proprietary web lock-in or Windows-only hacks | **Dual Engine**: Windows PowerPoint COM (live `.glb` embedding + studio lighting + `1920x1080` export) AND pure-Python cross-platform OpenXML + NumPy PBR studio renderer |
-| **Verification** | None | **Automated Quality Gate** (`validate_spec.py` + `verify_deck.py`): 0 XML errors, 0 external links, `<am3d:ptLight>` count verification, 0 emojis |
-
----
-
-## 10 Procedural PBR 3D `.glb` Archetypes (Zero Third-Party Binaries)
-
-Every 3D model is procedurally synthesized in pure Python + NumPy into binary **glTF 2.0 (`.glb`)** with analytical vertex normals, forward-facing UV coordinates, 5 PBR metallic-roughness materials, and custom-baked `1024x1024` self-lit core textures tinted to the project's palette and brand name.
-
-![MorphDeck 3D 10 Procedural PBR Archetypes](docs/showcase/archetypes_grid.png)
-
-| # | `hero_3d.archetype` | Target Domains | Procedural 3D Architecture |
-| :-: | :--- | :--- | :--- |
-| 01 | `architectural_pavilion` | Architecture, Real Estate, Construction | Travertine podium, bronze portico columns, 14 Douglas fir louvers, infinity basin, cantilevered roof + illuminated oculus |
-| 02 | `ai_quantum_server` | AI Infra, Cloud, Cybersecurity, DevOps | Anodized titanium tower, 7 GPU tensor blades, glowing RDMA bus bars, self-lit silicon core, dual orbital gimbal rings |
-| 03 | `energy_turbine_core` | CleanTech, Solar, Wind, Smart Grids | Industrial plinth, LFP storage tower, tilted crystalline solar arrays, 3-blade rotor & nacelle |
-| 04 | `product_drop_capsule` | E-Commerce, Hardware Drops, Consumer Brands | Levitating pedestal, brand-wrapped monolith cylinder & metallic dome, intersecting kinetic speed rings |
-| 05 | `aerospace_orbital_craft` | Aerospace, Autonomous Mobility, Defense | Multi-stage metallic fuselage, 4 swept delta fins, nosecone fairing, 3 plasma thruster bells |
-| 06 | `executive_globe_monolith` | FinOps, Strategy, Consulting, Enterprise | Tiered architectural plinth, illuminated continental network sphere, brushed titanium & champagne gold meridian rings |
-| 07 | `biotech_helix_core` | Biotech, Genomics, Pharma, MedTech | 20-step DNA double-helix phosphate backbone & glowing base-pair rungs inside biosensor containment rings |
-| 08 | `fintech_vault_prism` | FinTech, Security, Cryptography, Ledger | Hexagonal encrypted crystal vault monolith, 6 armor corner ribs, 3 interlocking titanium security rings |
-| 09 | `smartphone_pro` | Mobile Apps, Field Operations, SaaS | Rounded anodized titanium chassis, triple-lens camera island, Dynamic Island, custom-baked OLED UI screen |
-| 10 | `laptop_studio` | Developer Consoles, Web Platforms, B2B | Space-gray aluminum unibody, 60-key cap grid, glass trackpad, barrel hinge, live dashboard display |
-
-> Need your own custom Blender/CAD model? Pass `"archetype": "custom"` with `"custom_glb_path"` — `scripts/bake_glb_screen.py` can even bake live UI screenshots directly onto custom `.glb` display meshes.
+| **3D Visual Fidelity** | Flat stock icons or awkward boxy toys | **Real Khronos, Poly Haven photogrammetry & NASA CC0 `.glb` models** illuminated by calibrated **3-point colored `<am3d:ptLight>` studio rigs** |
+| **Cinema-Morph Motion** | Hard slide cuts or broken raw XML tags | **Broadsheet Newspaper Dives (`3.6x`)**, **Black-Curtain Rolling Odometer Reels**, **Diagonal Cloud Sweeps**, **4.4x Concentric Hollow-Frame Pull-Backs**, **Real Portal Fly-Throughs**, and **2-Stop Sky-Split Elevators** |
+| **Editorial Craft** | Rigid opaque rectangles everywhere | **Organic Liquid Ink Drips**, **Feathered Paper Clouds**, **Silhouette Horizons**, and **Gaussian Backdrop-Refracted Glass Docks** |
+| **Domain Adaptation** | Same slide structure reused across projects | **6 Visual Universes** + **17 Morph Slide Engines** auto-routed per topic & narrative arc |
+| **OS Support & QA** | Windows-only scripts or unchecked builds | **Windows PowerPoint COM** (live `.glb` + `1920x1080` lit export) AND **Cross-Platform Python OpenXML + NumPy PBR Renderer**, gated by `validate_spec.py` + `verify_deck.py` |
 
 ---
 
 ## Showcase Renders (Exported Directly from PowerPoint COM)
 
-| Optical Portal Fly-Through (`obsidian_kinetic` + `aerospace_orbital_craft`) | 2-Stop Vertical World Elevator (`vertical_elevator_3d` + Occluded Display) |
+| Editorial Print Drips (`documentary_press` + `AntiqueCamera`) | Black-Curtain Odometer (`1 196 164` Reels + Crimson Horizon) |
 | :---: | :---: |
-| ![Aetherion Optical Portal Fly-Through](docs/showcase/slide_portal_flythrough.png) | ![Aetherion Vertical World Elevator](docs/showcase/slide_vertical_elevator.png) |
-| **Backdrop-Refracted Glass Dock (`kinetic_poster` + `product_drop_capsule`)** | **Architecture Split-Horizon (`editorial_ivory` + `architectural_pavilion`)** |
-| ![PulseDrop Refracted Dock & 3-Point Lighting](docs/showcase/slide_refracted_dock.png) | ![Atelier Solstice Split Horizon 3D](docs/showcase/slide_architecture.png) |
-| **Cloud & AI Topology (`cyber_blueprint` + `ai_quantum_server`)** | **Biotech 4-Layer Depth Sandwich (`biotech_luminance` + `biotech_helix_core`)** |
-| ![VortexMesh Blueprint and Server 3D](docs/showcase/slide_ai_cluster.png) | ![Helixis Bio 4-Layer Depth Sandwich](docs/showcase/slide_biotech_depth.png) |
+| ![Documentary Press Organic Ink Drips](docs/showcase/slide_editorial_drips.png) | ![Masked Rolling Odometer Counter](docs/showcase/slide_odometer_cinema.png) |
+| **4.4x Concentric Frame Pull-Back (`Louvre` + Hollow Gold Frame)** | **Authentic Portal Fly-Through (`architectural_portal` + `AntiqueCamera`)** |
+| ![True Concentric Hollow Picture Frame Pull-Back](docs/showcase/slide_picture_frame_pullback.png) | ![Architectural Portal Fly-Through](docs/showcase/slide_portal_flythrough.png) |
+| **Sky-Split Vertical Elevator (`Matterhorn` + Occluded Display Type)** | **Backdrop-Refracted Glass Dock (`Uffizi` + 3-Point Lighting)** |
+| ![Sky-Split Vertical World Elevator](docs/showcase/slide_vertical_elevator.png) | ![Backdrop-Refracted Glass Dock](docs/showcase/slide_refracted_dock.png) |
+| **Cartographic Cutout Stage (`Typus Orbis Terrarum` + KPIs)** | **Rotational Macro 3D (`commercial_studio` + `MaterialsVariantsShoe`)** |
+| ![Historical World Map Cutout Stage](docs/showcase/slide_cutout_map.png) | ![High-Poly Footwear Rotational Drift 3D](docs/showcase/slide_real_sneaker_3d.png) |
+
+---
+
+## 6 Visual Universes
+
+| Universe | Lighting & Canvas | Display Typography | Best Fit |
+| :--- | :--- | :--- | :--- |
+| `documentary_press` | Archival broadsheet `#EAE3D2`, crimson `#B91C1C` | Georgia + Bahnschrift | History, investigative journalism, museums, aviation & archive documentaries |
+| `architectural_portal` | Warm travertine `#F4EFE6`, sienna `#C2410C`, teal `#0D9488` | Georgia + Bahnschrift | Luxury real estate, architectural pavilions, optical & hospitality showcases |
+| `sculptural_museum` | Midnight obsidian `#0A0C12`, terracotta `#E07A5F`, gold `#D4AF37` | Georgia + Bahnschrift | Curated exhibitions, sculptural art, luxury heritage brands |
+| `commercial_studio` | Studio black `#080A0F`, crimson `#E11D48`, cyan `#38BDF8` | Bahnschrift + Impact | Footwear drops, automotive launches, flagship hardware releases |
+| `executive_swiss` | Swiss paper `#F8FAFC`, royal blue `#2563EB`, hairline `#CBD5E1` | Bahnschrift + Consolas | Board decks, FinOps reviews, SaaS metrics, consulting readouts |
+| `editorial_pop` | Deep violet `#0F0C18`, magenta `#EC4899`, cyan `#06B6D4` | Impact + Bahnschrift | Creator launches, audio gear, gaming, energetic product storytelling |
+
+---
+
+## 17 Cinema-Morph Slide Engines
+
+| Category | Engines |
+| :--- | :--- |
+| **Documentary & Editorial** | `newspaper_dive`, `editorial_print_overlay`, `odometer_counter`, `flyby_wipe`, `cutout_map_stage`, `poster_depth_reveal`, `picture_frame_pullback` |
+| **Spatial & Photographic** | `real_portal_flythrough`, `refracted_spotlight_dock`, `parchment_3d_split`, `vertical_world_elevator` |
+| **Technical, Bento & Close** | `rotational_drift_3d`, `swiss_bento_morph`, `timeline_rail_morph`, `chart_infographic`, `architecture_blueprint`, `closing_finale` |
+
+Explore every schema and Morph naming rule in [references/universes-and-transitions-bible.md](references/universes-and-transitions-bible.md) and ready-to-build specs in [examples/](examples/).
+
+---
+
+## Real High-Poly CC0 3D & Open-License 4K Photography
+
+- **`scripts/fetch_real_glb.py`**: Fetches real studio-grade `.glb` models from **Khronos glTF-Sample-Assets** (`AntiqueCamera`, `MaterialsVariantsShoe`, `DamagedHelmet`, `GlamVelvetSofa`, `SheenChair`, `BoomBox`, `Lantern`, `CarConcept`, `WaterBottle`), **Poly Haven CC0 photogrammetry scans** (packed straight from `.gltf` + textures to binary `.glb`), and **NASA 3D Resources** spacecraft.
+- **`scripts/fetch_real_photo.py`**: Searches and caches real >= 1200 px open-license architecture, alpine, cartographic, and gallery photography via the **Wikimedia Commons API** — never calibration spheres or synthetic checkerboards.
+- **`scripts/studio_cutout.py`**: Generates perimeter-flood-filled RGBA studio cutouts (`make_studio_cutout`), architectural portal punches (`punch_portal_mask`), terrain sky splits (`split_horizon_cutout`), Gaussian backdrop refraction (`render_refracted_glass_dock`), organic ink drips (`render_organic_ink_drips`), feathered paper clouds (`render_soft_paper_cloud`), volumetric cloud sweeps (`render_cloud_sweep`), horizon silhouettes (`render_silhouette_horizon`), and hollow transparent-aperture museum gold frames (`render_hollow_gold_frame`).
 
 ---
 
@@ -77,8 +88,6 @@ git clone https://github.com/7AK3SH1/morphdeck-3d.git
 cd morphdeck-3d
 pip install -r requirements.txt
 ```
-
-Then run the installer for your agent environment:
 
 ```powershell
 # Windows (PowerShell) - choose: antigravity | claude | codex | cursor | all
@@ -93,17 +102,18 @@ Then run the installer for your agent environment:
 ### Option 2: Use the Turnkey CLI Directly
 
 ```bash
-# 1. Discover all 10 3D archetypes, 7 themes, and 19 slide methods
-python scripts/morphdeck.py list
+# 1. List all 6 visual universes and 17 Cinema-Morph engines
+python scripts/morphdeck.py universes
 
-# 2. Initialize a starter deck specification (aerospace | architecture | ai | product | executive | biotech | mobile)
-python scripts/morphdeck.py init --template aerospace --output work/deck_spec.json
+# 2. Scaffold a v3 starter spec (documentary_press | architectural_portal | commercial_studio)
+python scripts/morphdeck.py init --template documentary_press --out work/deck_spec.json
 
-# 3. Preview any 3D archetype as a studio PNG in under 1 second
-python scripts/morphdeck.py preview-3d --archetype biotech_helix_core --brand "HELIXIS" --output preview.png
+# 3. Fetch any real high-poly CC0 .glb by topic or inspect its studio preview PNG
+python scripts/morphdeck.py fetch-3d --auto "sneaker" --out work/hero.glb
+python scripts/morphdeck.py preview-3d --glb work/hero.glb --theme commercial_studio --out work/preview.png
 
-# 4. Validate, synthesize 3D assets, build PowerPoint .pptx, and run all OpenXML checks
-python scripts/morphdeck.py build work/deck_spec.json --out Helixis_Deck.pptx --renders work/renders
+# 4. Build PPTX + inject 3-point <am3d:ptLight> + export 1080p PNGs + verify XML
+python scripts/morphdeck.py build --spec work/deck_spec.json --out Output_Cinema.pptx --export-dir work/renders
 ```
 
 ---
@@ -111,47 +121,27 @@ python scripts/morphdeck.py build work/deck_spec.json --out Helixis_Deck.pptx --
 ## Pipeline Architecture
 
 ```text
-  deck_spec.json  (theme + hero_3d.archetype + 19 composable slide methods)
+  deck_spec.json  (v3 universe + hero_3d + 17 Cinema-Morph engines  |  or v2 legacy schema)
         |
         v
-  [1] validate_spec.py          Pre-flight schema, #RRGGBB palette, archetype & character limits
+  [1] validate_spec.py          Pre-flight v2/v3 schema, #RRGGBB colors & zero-emoji gate
         |
         v
-  [2] render_studio_assets.py   Synthesizes:
-        |-- generate_subject_glb.py -> Domain PBR glTF 2.0 (.glb) + 1024x1024 core texture
-        |-- Optical portal aperture masks (portal_outer.png + portal_inner.png)
-        |-- 1920x2160 2-stop vertical elevator panoramas & ridge cutouts
-        |-- True backdrop-refracted glass docks (GaussianBlur(24) + specular rim)
-        |-- 4-Layer Depth Sandwich terrain cutout + 2x supersampled charts & diagrams
+  [2] prepare_cinema_assets.py  Resolves:
+        |-- fetch_real_glb.py   -> High-poly Khronos / Poly Haven / NASA .glb + GLB RGBA cutouts
+        |-- fetch_real_photo.py -> Open-license 4K Wikimedia Commons landscapes, villas & maps
+        |-- studio_cutout.py    -> Ink drips, paper clouds, hollow gold frames, portal masks, sky splits
+        |-- 2x supersampled comparison charts & stacked architecture diagrams
         |
         v
-  [3] Dual Build Engine + 3D Studio Optics
-        |-- Windows PowerPoint COM (build_deck.ps1 -> inject_3d_studio_lighting.py -> -ExportOnly):
-        |     Embeds .glb once -> clones persistent shapes via .Duplicate() -> injects 3-point colored
-        |     <am3d:ptLight> studio rig -> re-opens cleanly & exports 1920x1080 lit PNGs
-        |-- macOS / Linux / CI (build_deck_crossplatform.py + render_glb_preview.py):
-        |     Renders 3-point theme-lit PBR studio views -> python-pptx OpenXML assembly
-        |     -> injects ECMA-376 <mc:AlternateContent><p159:morph/> XML
+  [3] Dual Build Engine + 3-Point <am3d:ptLight> Studio Optics
+        |-- Windows PowerPoint COM (build_cinema_deck.ps1 -> inject_3d_studio_lighting.py -> -ExportOnly)
+        |-- macOS / Linux / CI (build_cinema_crossplatform.py + render_glb_preview.py)
         |
         v
-  [4] verify_deck.py            Enforces 0 XML errors, 0 external links, Morph tags,
-                                embedded .glb count, <am3d:ptLight> rig verification, 0 emojis, and 1080p renders
+  [4] verify_deck.py            Enforces 0 XML errors, 0 external links, <mc:AlternateContent><p159:morph/>,
+                                embedded .glb + <am3d:ptLight> counts, 0 emojis, and 1080p render stddev
 ```
-
----
-
-## 7 Themes & 19 Slide Methods
-
-- **7 Built-in Theme Systems**: `obsidian_kinetic`, `editorial_ivory`, `cyber_blueprint`, `kinetic_poster`, `executive_clean`, `biotech_luminance`, `monochrome_luxury`.
-- **19 Composable Slide Methods**: `cover_hero`, `portal_flythrough_3d`, `vertical_elevator_3d`, `split_horizon_3d`, `depth_sandwich_pan`, `macro_dolly_3d`, `orbit_steps_3d`, `timeline_morph_step`, `kpi_bento`, `chart_infographic`, `architecture_diagram`, `problem_solution_split`, `comparison_matrix`, `chapter_divider_morph`, `editorial_split`, `spotlight_dock`, `macbook_studio_3d`, `full_bleed_visual`, `closing_finale`.
-
-Explore all schemas in [references/themes-and-methods-catalog.md](references/themes-and-methods-catalog.md) and ready-to-build domain specs in [examples/](examples/).
-
----
-
-## Inspiration & Design Philosophy
-
-**MorphDeck 3D** is inspired by modern editorial 3D presentation design — specifically the craft of optical aperture fly-throughs, vertical multi-stop world panoramas, Split-Horizon contrast pivots, Depth-Sandwich typographic occlusion, continuous camera-orbit Morph transitions, and tactile backdrop-refracted glass surfaces — re-engineered from first principles into a 100% original, deterministic open-source automation pipeline for AI agents.
 
 ---
 
