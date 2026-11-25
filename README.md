@@ -152,7 +152,7 @@ Explore all schemas in [references/themes-and-methods-catalog.md](references/the
 
 ## License & Attribution
 
-**Copyright 2026 Mohamed S. Sissoko (`7AK3SH1`)**
+**Copyright 2026 (`7AK3SH1`)**
 
 Licensed under the **Apache License, Version 2.0** (see [LICENSE](LICENSE) and [NOTICE](NOTICE)).
 
