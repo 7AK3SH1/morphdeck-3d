@@ -1,0 +1,134 @@
+{
+  "schema_version": 2,
+  "theme": "obsidian_kinetic",
+  "brand": {
+    "name": "RelayField",
+    "title_part1": "RELAY",
+    "title_part2": "FIELD",
+    "tagline": "Connected field operations platform across mobile edge and live dispatch",
+    "monogram": "RF",
+    "logo_path": ""
+  },
+  "palette": {
+    "accent1": "#F97316",
+    "accent2": "#38BDF8",
+    "accent3": "#F59E0B",
+    "chassis_color": "#F97316"
+  },
+  "hero_3d": {
+    "archetype": "smartphone_pro",
+    "secondary_archetype": "laptop_studio"
+  },
+  "assets": {},
+  "slides": [
+    {
+      "type": "cover_hero",
+      "style": "3d_staged",
+      "overline": "MOBILE + WEB PLATFORM BRIEF  //  FIELD OPERATIONS v2",
+      "subtitle": "Offline-first technician mobile workflows synchronized to an executive real-time dispatch console.",
+      "bottom_cue": "100% PROCEDURAL 3D  |  MOBILE & DESKTOP SYNC"
+    },
+    {
+      "type": "split_horizon_3d",
+      "giant_word": "DISPATCH",
+      "left_label": "FIELD CHALLENGE",
+      "left_text": "Technicians lose 90 minutes daily on paper work orders and disconnected status calls.",
+      "right_label": "MOBILE PRECISION",
+      "right_text": "Structured offline checklists, photo proof capture, and instant client sign-off.",
+      "kpis": [
+        { "value": "340+", "label": "ACTIVE TEAMS" },
+        { "value": "42 sec", "label": "JOB DISPATCH" },
+        { "value": "99.9%", "label": "OFFLINE SYNC" },
+        { "value": "+34%", "label": "DAILY CAPACITY" }
+      ]
+    },
+    {
+      "type": "orbit_steps_3d",
+      "variant": "upper_stats",
+      "overline": "01  /  VERIFIED IMPACT",
+      "headline": "Built for high-tempo\nfield engineering.",
+      "body": "Every crew member receives route-optimized dispatches, schematic overlays, and instant escalation inside one native mobile companion.",
+      "stats": [
+        { "value": "42s", "label": "ASSIGNMENT", "detail": "Automated nearest-crew match by certification." },
+        { "value": "100%", "label": "AUDIT TRAIL", "detail": "Timestamped photos and customer e-signatures." },
+        { "value": "0 ms", "label": "OFFLINE LAG", "detail": "CRDT local queue syncs transparently on reconnect." }
+      ]
+    },
+    {
+      "type": "orbit_steps_3d",
+      "variant": "obsidian_steps",
+      "side": "left",
+      "overline": "02  /  WORKFLOW LOOP",
+      "headline": "Four steps from alert\nto signed resolution.",
+      "steps": [
+        { "num": "01", "title": "Smart Ticket Triage", "desc": "Priority classification and automated SLA timer assignment." },
+        { "num": "02", "title": "Crew Route Optimization", "desc": "Skill-matched technician dispatched with parts inventory check." },
+        { "num": "03", "title": "Guided On-Site Execution", "desc": "Offline-capable SOP checklist, diagnostic scans, and media log." },
+        { "num": "04", "title": "Instant Billing Sync", "desc": "Digital client acceptance pushed directly to ERP invoicing." }
+      ]
+    },
+    {
+      "type": "macbook_studio_3d",
+      "side": "right",
+      "overline": "03  /  DISPATCH COMMAND CONSOLE",
+      "headline": "Full fleet visibility\nfrom one screen.",
+      "pillars": [
+        { "title": "LIVE TELEMETRY BOARD", "desc": "Monitor active routes, SLA countdowns, and field bottlenecks in real time." },
+        { "title": "REST + WEBHOOK FABRIC", "desc": "Bi-directional ERP and CRM synchronization with idempotent retries." },
+        { "title": "ZERO-TRUST CREW AUTH", "desc": "Scoped JWT tokens, device attestation, and encrypted offline storage." }
+      ]
+    },
+    {
+      "type": "closing_finale",
+      "style": "dual_3d",
+      "tagline": "Mobile edge meets dispatch clarity.",
+      "summary": "Offline-first technician mobile app\nReal-time fleet dispatch web console\n42-second intelligent job routing\nProduction-ready API & webhooks",
+      "cta": "START A FIELD PILOT"
+    }
+  ],
+  "mobile_ui": {
+    "location_badge": "Sector 4",
+    "hero_line1": "Field Dispatch",
+    "hero_line2": "Zero Paperwork.",
+    "search_placeholder": "Filter jobs, SLA, skills...",
+    "chips": ["All Jobs", "Electrical", "HVAC", "Fiber"],
+    "active_chip_index": 1,
+    "section_label": "ASSIGNED CREWS NEARBY",
+    "nav_items": ["Queue", "Map", "Sync", "Crew"],
+    "cards": [
+      { "title": "Substation Alpha-4", "subtitle": "High Voltage  |  Sector North", "rating": "SLA 24 min", "metric": "Priority P1", "cta": "Open" },
+      { "title": "Cooling Tower B2", "subtitle": "HVAC Plant  |  Central Hub", "rating": "SLA 1h 15m", "metric": "Checklist", "cta": "Open" },
+      { "title": "Core Fiber Splice", "subtitle": "Trunk Line  |  West Gate", "rating": "Verified OK", "metric": "Synced", "cta": "Log" }
+    ]
+  },
+  "desktop_ui": {
+    "cta_label": "Dispatch Center",
+    "overline": "RELAYFIELD COMMAND  //  LIVE FLEET",
+    "headline": "Real-time dispatch & SLA console",
+    "nav_links": ["Map", "Crews", "SLA", "API Docs", "Billing"],
+    "grid_heading": "ACTIVE FIELD UNITS",
+    "telemetry_heading": "LIVE SYNC STREAM",
+    "kpis": [
+      { "value": "340", "label": "ACTIVE TEAMS" },
+      { "value": "42s", "label": "MEDIAN DISPATCH" },
+      { "value": "99.9%", "label": "OFFLINE SYNC" },
+      { "value": "4.9/5", "label": "CLIENT CSAT" }
+    ],
+    "cards": [
+      { "title": "North Grid Unit", "subtitle": "Substation Alpha-4", "badge": "On Schedule", "footer": "ETA: 8 min", "image": "" },
+      { "title": "Central HVAC Crew", "subtitle": "Chiller Loop #2", "badge": "In Progress", "footer": "Checklist 80%", "image": "" },
+      { "title": "Metro Fiber Team", "subtitle": "Node West-12", "badge": "Signed Off", "footer": "Invoice Sent", "image": "" }
+    ],
+    "events": [
+      { "title": "Dispatch #408  |  Substation Alpha", "detail": "Assigned to Crew N4 in 14 seconds" },
+      { "title": "Offline Sync  |  West Gate Node", "detail": "12 diagnostic photos synced cleanly" },
+      { "title": "SLA Audit  |  Daily Summary", "detail": "100% P1 tickets resolved on target" }
+    ],
+    "api_box": {
+      "stack": "MOBILE EDGE + WEBSOCKETS + REST v2",
+      "line1": "POST /api/v2/dispatch/route-nearest",
+      "line2": "GET  /api/v2/fleet/telemetry/live",
+      "status": "Cluster Status: 340 CREWS SYNCHRONIZED"
+    }
+  }
+}

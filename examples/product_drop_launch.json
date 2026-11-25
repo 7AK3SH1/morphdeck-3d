@@ -1,0 +1,138 @@
+{
+  "schema_version": 2,
+  "theme": "kinetic_poster",
+  "brand": {
+    "name": "PulseDrop",
+    "title_part1": "PULSE",
+    "title_part2": "DROP",
+    "tagline": "Real-time limited product drops with cryptographic fairness and zero checkout crashes",
+    "monogram": "PD",
+    "logo_path": ""
+  },
+  "palette": {
+    "accent1": "#E11D48",
+    "accent2": "#3B82F6",
+    "accent3": "#F59E0B"
+  },
+  "hero_3d": {
+    "archetype": "product_drop_capsule"
+  },
+  "assets": {},
+  "slides": [
+    {
+      "type": "cover_hero",
+      "style": "bold_poster",
+      "overline": "GLOBAL LAUNCH CAMPAIGN  //  CAPSULE SERIES 01",
+      "headline": "ZERO CRASH.\nPURE IMPACT.",
+      "subtitle": "High-frequency edge commerce engine built to handle 250,000 simultaneous buyers with verified anti-bot fairness.",
+      "bottom_cue": "DROP ENGINE v4  |  READY FOR SCALE"
+    },
+    {
+      "type": "problem_solution_split",
+      "overline": "01  /  BUYER EXPERIENCE SHIFT",
+      "headline": "Why conventional flash drops break under load",
+      "badge": "BEFORE / AFTER",
+      "bridge_label": "PULSE 3D",
+      "left": {
+        "tag": "LEGACY STACK",
+        "title": "Timeouts & Scalpers",
+        "items": [
+          { "title": "502 errors at launch minute", "desc": "Monolithic relational locks stall above 15,000 RPS." },
+          { "title": "Automated bot sweeps", "desc": "Up to 70% of inventory claimed in 4 seconds by scripts." },
+          { "title": "Opaque waiting rooms", "desc": "Buyers wait blind without live per-size inventory signals." }
+        ]
+      },
+      "right": {
+        "tag": "PULSEDROP PROTOCOL",
+        "title": "Edge Fairness & Speed",
+        "items": [
+          { "title": "4 ms edge reservation", "desc": "Distributed atomic counters with zero central DB locks." },
+          { "title": "Passive humanity proof", "desc": "Zero-friction bot filtering without annoying CAPTCHA walls." },
+          { "title": "Live SKU inventory pulse", "desc": "Real-time availability stream synced every 250 ms globally." }
+        ]
+      }
+    },
+    {
+      "type": "kpi_bento",
+      "layout": "top_hero_strip",
+      "overline": "02  /  GLOBAL DROP TELEMETRY",
+      "headline": "Full traffic spike absorbed with zero overselling",
+      "badge": "LOAD TEST VERIFIED",
+      "hero_tile": {
+        "label": "CONCURRENT PEAK",
+        "value": "284K",
+        "title": "Active shoppers at launch second",
+        "desc": "Executed across 24 edge regions with 1.8 s median checkout completion and 100% inventory accuracy.",
+        "badge": "0 OVERSOLD SKUS"
+      },
+      "tiles": [
+        {
+          "label": "BOTS BLOCKED",
+          "value": "99.4%",
+          "desc": "Automated scraper requests rejected at edge before inventory hold."
+        },
+        {
+          "label": "CHECKOUT LIFT",
+          "value": "+41%",
+          "desc": "Completed fan orders compared against legacy queue funnel."
+        },
+        {
+          "label": "AVG ORDER VALUE",
+          "value": "$148",
+          "desc": "One-tap bundle cross-sell inside the express mobile checkout."
+        }
+      ]
+    },
+    {
+      "type": "spotlight_dock",
+      "spotlight_index": 0,
+      "dock_index": 0,
+      "show_3d": true,
+      "spotlight": {
+        "tag": "CAPSULE RELEASE 01  /  TOKYO EDITION",
+        "title": "Aero-X Capsule",
+        "subtitle": "5,000 units  |  Allocated in 1.4 s  |  0 bot leakage",
+        "body": "Launched simultaneously in 18 markets using cryptographic queue tickets and deterministic inventory leases under 2 seconds.",
+        "badge": "SOLD OUT 1.4S"
+      },
+      "dock": [
+        { "title": "Aero-X 01", "subtitle": "5,000 Tokyo units" },
+        { "title": "Vortex Pro", "subtitle": "3,200 Paris units" },
+        { "title": "Shield SDK", "subtitle": "Edge Anti-Bot" },
+        { "title": "Live Sync", "subtitle": "24 Global POPs" }
+      ]
+    },
+    {
+      "type": "spotlight_dock",
+      "spotlight_index": 1,
+      "dock_index": 1,
+      "show_3d": true,
+      "spotlight": {
+        "tag": "CAPSULE RELEASE 02  /  PARIS NIGHT",
+        "title": "Vortex Monolith",
+        "subtitle": "3,200 units  |  99.4% verified human buyers",
+        "body": "Passive behavioral attestation at the CDN edge dropped 140,000 automated requests per second with zero checkout friction.",
+        "badge": "99.4% HUMAN"
+      },
+      "dock": [
+        { "title": "Aero-X 01", "subtitle": "5,000 Tokyo units" },
+        { "title": "Vortex Pro", "subtitle": "3,200 Paris units" },
+        { "title": "Shield SDK", "subtitle": "Edge Anti-Bot" },
+        { "title": "Live Sync", "subtitle": "24 Global POPs" }
+      ]
+    },
+    {
+      "type": "closing_finale",
+      "style": "editorial_statement",
+      "overline": "PULSEDROP  //  NEXT SEASON LAUNCH",
+      "headline": "Launch every limited drop without limits.",
+      "summary": "Includes dedicated load-test sandbox, React & Mobile SDKs, and live telemetry war-room support on drop day.",
+      "cta": "BOOK YOUR DROP WINDOW",
+      "metrics": [
+        { "value": "284k/s", "label": "VERIFIED PEAK" },
+        { "value": "15 min", "label": "SDK SETUP" },
+        { "value": "0", "label": "CRITICAL INCIDENTS" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,196 @@
+{
+  "schema_version": 2,
+  "theme": "cyber_blueprint",
+  "brand": {
+    "name": "VortexMesh",
+    "title_part1": "VORTEX",
+    "title_part2": "MESH",
+    "tagline": "Low-latency distributed inference orchestrator for heterogeneous GPU clusters",
+    "monogram": "VM",
+    "logo_path": ""
+  },
+  "palette": {
+    "accent1": "#06B6D4",
+    "accent2": "#818CF8",
+    "accent3": "#10B981"
+  },
+  "hero_3d": {
+    "archetype": "ai_quantum_server",
+    "secondary_archetype": "laptop_studio"
+  },
+  "assets": {},
+  "slides": [
+    {
+      "type": "cover_hero",
+      "style": "centered_clean",
+      "overline": "SYSTEM ARCHITECTURE BRIEF  //  RELEASE v3.4",
+      "subtitle": "Zero-copy KV-cache routing over RDMA, adaptive FP8 quantization, and kernel-enforced multi-tenant isolation.",
+      "meta": [
+        { "value": "18 ms", "label": "P99 TTFT LATENCY" },
+        { "value": "3.8x", "label": "TOK/S PER WATT" },
+        { "value": "99.99%", "label": "PRODUCTION SLA" }
+      ]
+    },
+    {
+      "type": "kpi_bento",
+      "layout": "left_anchor",
+      "overline": "01  /  CLUSTER TELEMETRY",
+      "headline": "Production benchmarks across 120 GPU nodes",
+      "badge": "BENCHMARK v3.4",
+      "hero_tile": {
+        "label": "THROUGHPUT GAIN",
+        "value": "3.8x",
+        "title": "Sustained RPS per GPU",
+        "desc": "Continuous iteration-level batching paired with disaggregated RDMA KV-cache page sharing across nodes.",
+        "badge": "ZERO-COPY KV ROUTING"
+      },
+      "tiles": [
+        {
+          "label": "MEDIAN TTFT",
+          "value": "18 ms",
+          "desc": "Time to first token under 1,000 req/s sustained synthetic load."
+        },
+        {
+          "label": "COST REDUCTION",
+          "value": "-62%",
+          "desc": "Monthly GPU compute spend versus static container orchestration."
+        }
+      ],
+      "wide_tile": {
+        "overline": "RESILIENCE & OBSERVABILITY",
+        "title": "Automatic cross-zone failover under 150 ms",
+        "columns": [
+          { "label": "eBPF Isolation", "desc": "Deterministic network and VRAM quotas enforced inside the Linux kernel." },
+          { "label": "OpenTelemetry Spans", "desc": "Full request-to-kernel correlation with under 0.8% CPU overhead." }
+        ]
+      }
+    },
+    {
+      "type": "architecture_diagram",
+      "overline": "02  /  NETWORK & EXECUTION TOPOLOGY",
+      "headline": "Distributed request path from L7 router to CUDA",
+      "badge": "EDGE BLUEPRINT",
+      "layers": [
+        {
+          "name": "INGRESS & CONTROL PLANE",
+          "nodes": [
+            { "title": "Envoy Gateway", "subtitle": "TLS 1.3 termination & token-aware rate limits", "tag": "gRPC / HTTP3" },
+            { "title": "KV-Aware Router", "subtitle": "Consistent hash prefix affinity routing", "tag": "< 1.2 ms" }
+          ]
+        },
+        {
+          "name": "SCHEDULING ENGINE",
+          "nodes": [
+            { "title": "Priority Queue", "subtitle": "SLA preemption & continuous batching", "tag": "Rust Async" },
+            { "title": "KV Page Fabric", "subtitle": "Direct RoCEv2 RDMA memory transfers", "tag": "Zero-Copy" },
+            { "title": "Policy Guard", "subtitle": "Deterministic JSON schema & safety gates", "tag": "Inline" }
+          ]
+        },
+        {
+          "name": "EXECUTION WORKERS",
+          "nodes": [
+            { "title": "FP8 Tensor Pool", "subtitle": "High-density low-latency H100 inference", "tag": "H100 / L40S" },
+            { "title": "INT4 Edge Burst", "subtitle": "Automatic overflow for regional spikes", "tag": "Edge Node" }
+          ]
+        }
+      ],
+      "flows": [
+        "Prefix-affinity dispatch  |  gRPC stream",
+        "RDMA KV-page transfer  |  0.4 ms"
+      ],
+      "pillars": [
+        { "tag": "PROTOCOL", "title": "Zero-Copy RDMA", "desc": "Direct GPU-to-GPU tensor transport bypassing host CPU memory copies." },
+        { "tag": "SCHEDULER", "title": "Continuous Batching", "desc": "Instant slot reclamation the millisecond any sequence finishes decoding." }
+      ]
+    },
+    {
+      "type": "chart_infographic",
+      "chart_type": "comparison_bars",
+      "overline": "03  /  COMPARATIVE BENCHMARK",
+      "headline": "VortexMesh vs conventional serving stack",
+      "badge": "64K CONTEXT",
+      "items": [
+        { "label": "Sustained Output (tok/s/GPU)", "baseline": 1150, "value": 4380, "unit": "tok/s", "delta": "+3.8x" },
+        { "label": "Effective VRAM Utilization (%)", "baseline": 54, "value": 93, "unit": "%", "delta": "+39 pts" },
+        { "label": "Requests Meeting 50ms SLA (%)", "baseline": 71, "value": 98.5, "unit": "%", "delta": "+27.5 pts" },
+        { "label": "Cost Index per 1M Tokens", "baseline": 100, "value": 38, "unit": "idx", "delta": "-62% cost" }
+      ],
+      "highlight": {
+        "value": "93%",
+        "label": "VRAM EFFICIENCY",
+        "desc": "Paged KV allocation eliminates static memory fragmentation."
+      },
+      "insights": [
+        { "title": "Shared Prefix Cache", "desc": "Instant reuse of system prompts across thousands of concurrent sessions." }
+      ]
+    },
+    {
+      "type": "chart_infographic",
+      "chart_type": "radial_rings",
+      "overline": "04  /  OPERATIONAL MATURITY",
+      "headline": "Verified reliability and isolation SLAs",
+      "badge": "PROD AUDIT",
+      "items": [
+        { "label": "SLA P99", "value_pct": 99.4, "display_value": "99.4%", "sublabel": "Sub 25 ms TTFT" },
+        { "label": "Cache Hit Rate", "value_pct": 88.0, "display_value": "88%", "sublabel": "KV prefix reuse" },
+        { "label": "Tenant Isolation", "value_pct": 100.0, "display_value": "100%", "sublabel": "Zero cross-read" }
+      ],
+      "highlight": {
+        "value": "0.0%",
+        "label": "TENANT LEAKAGE",
+        "desc": "Hardware memory scrubbing verified between tenant allocations."
+      },
+      "insights": [
+        { "title": "Weekly Chaos Drills", "desc": "Automated single-node failure injection with zero dropped client streams." }
+      ]
+    },
+    {
+      "type": "macbook_studio_3d",
+      "side": "left",
+      "overline": "05  /  OBSERVABILITY WORKBENCH",
+      "headline": "Live cluster telemetry\nat a glance.",
+      "pillars": [
+        { "title": "TENSOR & VRAM HEATMAP", "desc": "Per-worker inspection of KV-cache pressure and decoding queue depth." },
+        { "title": "DISTRIBUTED TRACE WATERFALL", "desc": "End-to-end span breakdown from Envoy edge TLS to CUDA execution." },
+        { "title": "LIVE QUOTA GOVERNANCE", "desc": "Hot-reload per-tenant token caps and model fallbacks without restarts." }
+      ]
+    },
+    {
+      "type": "closing_finale",
+      "style": "dual_3d",
+      "tagline": "High-density inference infrastructure.",
+      "summary": "120 GPU nodes unified over zero-copy RDMA\n18 ms P99 TTFT & 93% useful VRAM efficiency\nCertified eBPF multi-tenant runtime isolation\nDrop-in OpenAI-compatible API endpoint",
+      "cta": "LAUNCH A 14-DAY PILOT"
+    }
+  ],
+  "desktop_ui": {
+    "cta_label": "Cluster Status: OK",
+    "overline": "VORTEXMESH CONTROL PLANE  //  120 GPUs",
+    "headline": "Inference & KV-prefix supervision",
+    "nav_links": ["Topology", "Workers", "KV Cache", "Traces", "Quotas"],
+    "grid_heading": "ACTIVE POOLS",
+    "telemetry_heading": "RDMA EVENT STREAM",
+    "kpis": [
+      { "value": "18 ms", "label": "TTFT P99" },
+      { "value": "4,380", "label": "TOK / SEC / GPU" },
+      { "value": "93%", "label": "VRAM UTILIZED" },
+      { "value": "0", "label": "30D SLA BREACHES" }
+    ],
+    "cards": [
+      { "title": "EU-West FP8 Pool", "subtitle": "64x H100 SXM", "badge": "Load 84%", "footer": "Latency: 16 ms", "image": "" },
+      { "title": "US-East Edge Pool", "subtitle": "40x L40S Cluster", "badge": "Cache hit 91%", "footer": "Output: 142k tok/s", "image": "" },
+      { "title": "Guardrail Engine", "subtitle": "Rust Policy Worker", "badge": "Inline < 0.8ms", "footer": "100% verified", "image": "" }
+    ],
+    "events": [
+      { "title": "RDMA Sync  |  Node 14 -> Node 29", "detail": "KV page batch completed in 0.38 ms" },
+      { "title": "Auto-Scale  |  EU-West Burst", "detail": "+8 workers online with zero dropped streams" },
+      { "title": "Canary v3.4.2  |  Validation OK", "detail": "0 regressions across 1M replay requests" }
+    ],
+    "api_box": {
+      "stack": "RUST WORKER + CUDA + gRPC HTTP/3",
+      "line1": "POST /v3/cluster/route/kv-prefix",
+      "line2": "GET  /v3/telemetry/sla-percentiles",
+      "status": "Healthcheck: ALL 120 NODES ONLINE"
+    }
+  }
+}

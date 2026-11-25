@@ -1,0 +1,128 @@
+{
+  "schema_version": 2,
+  "theme": "executive_clean",
+  "brand": {
+    "name": "Meridian Ops",
+    "title_part1": "MERIDIAN",
+    "title_part2": "OPS",
+    "tagline": "Multi-region FinOps cloud cost governance and capacity optimization",
+    "monogram": "MO",
+    "logo_path": ""
+  },
+  "palette": {
+    "accent1": "#3B82F6",
+    "accent2": "#14B8A6",
+    "accent3": "#F59E0B"
+  },
+  "hero_3d": {
+    "archetype": "executive_globe_monolith"
+  },
+  "assets": {},
+  "slides": [
+    {
+      "type": "cover_hero",
+      "style": "asymmetric_split",
+      "overline": "EXECUTIVE BOARD REVIEW  //  Q4 FINOPS AUDIT",
+      "headline": "Reclaim control of\nglobal cloud spend.",
+      "subtitle": "Granular cost telemetry across 420 microservices, automated idle scheduling, and flexible commitment coverage.",
+      "figure_caption": "GLOBAL MESH  //  420 MICROSERVICES",
+      "meta": [
+        { "label": "ANNUAL SAVINGS", "value": "$1.48M" },
+        { "label": "PAYBACK PERIOD", "value": "6 weeks" }
+      ]
+    },
+    {
+      "type": "chapter_divider_morph",
+      "overline": "PART 01  /  AUDIT FINDING",
+      "chapter_num": "01",
+      "headline": "38% of provisioned compute sits idle outside peak hours.",
+      "subtitle": "Unbounded autoscaling defaults and unscheduled staging clusters directly compress gross software margin.",
+      "toc": [
+        { "label": "01  AUDIT", "active": true },
+        { "label": "02  KPI IMPACT", "active": false },
+        { "label": "03  BENCHMARK", "active": false },
+        { "label": "04  ROLLOUT", "active": false }
+      ]
+    },
+    {
+      "type": "kpi_bento",
+      "layout": "top_hero_strip",
+      "overline": "02  /  FINANCIAL IMPACT",
+      "headline": "Verified run-rate savings after 90 days in production",
+      "badge": "FINANCE VERIFIED",
+      "hero_tile": {
+        "label": "ANNUALIZED RUN REDUCTION",
+        "value": "$1.48M",
+        "title": "Net infrastructure savings",
+        "desc": "Driven by Kubernetes bin-packing, tiered object storage lifecycle rules, and flexible 1-year commitments.",
+        "badge": "+4.2 PTS MARGIN"
+      },
+      "tiles": [
+        {
+          "label": "ZOMBIE INSTANCES",
+          "value": "-89%",
+          "desc": "Pre-production environments parked automatically on nights and weekends."
+        },
+        {
+          "label": "COMMIT COVERAGE",
+          "value": "86%",
+          "desc": "Baseline compute covered with zero long-term lock-in risk."
+        },
+        {
+          "label": "ANOMALY ALERTING",
+          "value": "15 min",
+          "desc": "Slack and PagerDuty triggers the moment any squad spikes +20%."
+        }
+      ]
+    },
+    {
+      "type": "chart_infographic",
+      "chart_type": "comparison_bars",
+      "overline": "03  /  SPEND BREAKDOWN",
+      "headline": "Monthly cloud spend before vs after governance ($K)",
+      "badge": "Q4 AUDIT",
+      "items": [
+        { "label": "Kubernetes Compute ($K/mo)", "baseline": 185, "value": 112, "unit": "K", "delta": "-39%" },
+        { "label": "Managed DBs & Snapshots", "baseline": 94, "value": 61, "unit": "K", "delta": "-35%" },
+        { "label": "Cross-AZ & Egress Traffic", "baseline": 48, "value": 24, "unit": "K", "delta": "-50%" },
+        { "label": "Dev & Staging Environments", "baseline": 42, "value": 14, "unit": "K", "delta": "-67%" }
+      ],
+      "highlight": {
+        "value": "$123K",
+        "label": "MONTHLY GAIN",
+        "desc": "Recurring opex reduction recognized cleanly on Q1 P&L."
+      },
+      "insights": [
+        { "title": "AZ-Aware Co-location", "desc": "Eliminates unnecessary inter-zone network transfer fees." }
+      ]
+    },
+    {
+      "type": "comparison_matrix",
+      "overline": "04  /  GOVERNANCE OPTIONS",
+      "headline": "Comparison of cost-control operating models",
+      "badge": "EXEC MATRIX",
+      "columns": ["Evaluation Criteria", "Manual Audit", "Custom Scripts", "Meridian Ops"],
+      "rows": [
+        { "criterion": "Time to production", "col1": "10 to 14 wks", "col2": "4 mo eng", "featured": "7 days" },
+        { "criterion": "Multi-cloud coverage", "col1": "Static PDF", "col2": "Partial", "featured": "AWS + GCP + Azure" },
+        { "criterion": "Automated remediation", "col1": "None", "col2": "Outage risk", "featured": "Policy-guarded" },
+        { "criterion": "Team-level attribution", "col1": "~60% tagged", "col2": "~72% tagged", "featured": "99.2% traced" },
+        { "criterion": "Net ROI vs cost", "col1": "High consulting", "col2": "Eng upkeep", "featured": "9x guaranteed ROI" }
+      ]
+    },
+    {
+      "type": "closing_finale",
+      "style": "executive_cta",
+      "overline": "MERIDIAN OPS  //  PROPOSED RESOLUTION",
+      "headline": "Approve Phase 1 rollout on Core Production.",
+      "summary": "Zero kernel agents required: 7-day read-only discovery followed by policy-approved automation.",
+      "tagline": "Continuous Cloud FinOps",
+      "cta": "APPROVE PHASE 1 ROLLOUT",
+      "actions": [
+        { "num": "01", "title": "READ-ONLY CONNECT", "desc": "Ingest CUR / BigQuery billing exports in under 2 hours." },
+        { "num": "02", "title": "TOP 20 WORKLOAD REVIEW", "desc": "Joint SRE + Finance walkthrough on immediate waste wins." },
+        { "num": "03", "title": "AUTOMATED POLICIES", "desc": "Enable off-hours parking and monthly executive reporting." }
+      ]
+    }
+  ]
+}

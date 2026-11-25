@@ -1,0 +1,231 @@
+{
+  "schema_version": 2,
+  "theme": "editorial_ivory",
+  "brand": {
+    "name": "Atelier Solstice",
+    "title_part1": "ATELIER",
+    "title_part2": "SOLSTICE",
+    "tagline": "Bioclimatic rammed-earth and mass-timber pavilion architecture",
+    "monogram": "AS",
+    "logo_path": ""
+  },
+  "palette": {
+    "accent1": "#C2410C",
+    "accent2": "#D97706",
+    "accent3": "#0D9488"
+  },
+  "hero_3d": {
+    "archetype": "architectural_pavilion"
+  },
+  "assets": {},
+  "slides": [
+    {
+      "type": "cover_hero",
+      "style": "asymmetric_split",
+      "overline": "ARCHITECTURAL DOSSIER 3D  //  EDITION 2026",
+      "headline": "Build low-carbon,\ntimeless spaces.",
+      "subtitle": "Modular passive pavilions combining precast rammed-earth walls, cut limestone plinths, and local Douglas fir framing.",
+      "figure_caption": "3D SCALE MODEL  //  SOLSTICE PAVILION",
+      "meta": [
+        { "label": "EMBODIED CARBON", "value": "-68% CO2" },
+        { "label": "ON-SITE ASSEMBLY", "value": "14 wks" }
+      ]
+    },
+    {
+      "type": "split_horizon_3d",
+      "giant_word": "MATERIAL",
+      "left_label": "THERMAL INERTIA",
+      "left_text": "42 cm compressed-earth load-bearing cores regulating indoor humidity passively year-round.",
+      "right_label": "SOLAR GEOMETRY",
+      "right_text": "Solid Douglas fir vertical louvers calibrated to block summer zenith sun and admit winter light.",
+      "kpis": [
+        { "value": "-68%", "label": "STRUCTURAL CO2" },
+        { "value": "14 h", "label": "THERMAL LAG" },
+        { "value": "19 kWh", "label": "DEMAND / M2 / YR" },
+        { "value": "100%", "label": "LOCAL TIMBER" }
+      ]
+    },
+    {
+      "type": "macro_dolly_3d",
+      "overline": "02  /  ENVELOPE MACRO INSPECTION",
+      "headline": "Three structural layers joined without concrete",
+      "callouts": [
+        {
+          "title": "CANTILEVER ROOF & CIRCULAR OCULUS",
+          "desc": "1.85 m solar overhang shading high summer glare while warming the central double-height atrium."
+        },
+        {
+          "title": "TIMBER COLONNADE & GLAZED CORE",
+          "desc": "Fourteen structural Douglas fir fins paired with triple-glazed thermal curtain walls."
+        },
+        {
+          "title": "STEPPED TRAVERTINE PLINTH & BASIN",
+          "desc": "Reversible helical pier foundations isolating earth walls from moisture with LED perimeter reveal."
+        }
+      ]
+    },
+    {
+      "type": "timeline_morph_step",
+      "overline": "03  /  OFF-SITE DELIVERY TIMELINE",
+      "headline": "From laser site scan to turnkey handover in 14 weeks",
+      "active_index": 0,
+      "stages": [
+        {
+          "code": "01",
+          "label": "SITE SCAN",
+          "metric": "48h",
+          "metric_label": "SOLAR AUDIT",
+          "tag": "FIELD PHASE",
+          "title": "Topographic lidar and dynamic thermal twin",
+          "summary": "Millimeter parcel scanning to align orientation, wind corridors, and passive solar gains.",
+          "bullets": [
+            "Drone photogrammetry and geotechnical soil probing",
+            "8,760-hour annual thermal comfort simulation",
+            "Verified lifecycle carbon baseline prior to permit"
+          ]
+        },
+        {
+          "code": "02",
+          "label": "PREFAB",
+          "metric": "6 wks",
+          "metric_label": "INDOOR WORKSHOP",
+          "tag": "SHORT SUPPLY",
+          "title": "CNC timber joinery and earth block pressing",
+          "summary": "Weather-proof factory fabrication within 120 km of the build parcel for zero tolerance drift.",
+          "bullets": [
+            "Excavated site clay sieved and stabilized cement-free",
+            "Wood-fiber insulated structural Douglas fir cassettes",
+            "Factory pre-fitted glazing and concealed MEP conduits"
+          ]
+        },
+        {
+          "code": "03",
+          "label": "DRY ASSEMBLY",
+          "metric": "12 d",
+          "metric_label": "CRANE ERECTION",
+          "tag": "ZERO WASTE",
+          "title": "Quiet crane rigging and immediate weather-tightness",
+          "summary": "Sequential dry-bolted module lifting cutting neighborhood noise and site waste by 5x.",
+          "bullets": [
+            "Reversible mechanical fasteners for circular reuse",
+            "Blower-door airtightness verified below 0.45 ACH",
+            "Green roof planting and micro-grid tie-in on day 12"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "timeline_morph_step",
+      "overline": "03  /  OFF-SITE DELIVERY TIMELINE",
+      "headline": "From laser site scan to turnkey handover in 14 weeks",
+      "active_index": 1,
+      "stages": [
+        {
+          "code": "01",
+          "label": "SITE SCAN",
+          "metric": "48h",
+          "metric_label": "SOLAR AUDIT",
+          "tag": "FIELD PHASE",
+          "title": "Topographic lidar and dynamic thermal twin",
+          "summary": "Millimeter parcel scanning to align orientation, wind corridors, and passive solar gains.",
+          "bullets": [
+            "Drone photogrammetry and geotechnical soil probing",
+            "8,760-hour annual thermal comfort simulation",
+            "Verified lifecycle carbon baseline prior to permit"
+          ]
+        },
+        {
+          "code": "02",
+          "label": "PREFAB",
+          "metric": "6 wks",
+          "metric_label": "INDOOR WORKSHOP",
+          "tag": "SHORT SUPPLY",
+          "title": "CNC timber joinery and earth block pressing",
+          "summary": "Weather-proof factory fabrication within 120 km of the build parcel for zero tolerance drift.",
+          "bullets": [
+            "Excavated site clay sieved and stabilized cement-free",
+            "Wood-fiber insulated structural Douglas fir cassettes",
+            "Factory pre-fitted glazing and concealed MEP conduits"
+          ]
+        },
+        {
+          "code": "03",
+          "label": "DRY ASSEMBLY",
+          "metric": "12 d",
+          "metric_label": "CRANE ERECTION",
+          "tag": "ZERO WASTE",
+          "title": "Quiet crane rigging and immediate weather-tightness",
+          "summary": "Sequential dry-bolted module lifting cutting neighborhood noise and site waste by 5x.",
+          "bullets": [
+            "Reversible mechanical fasteners for circular reuse",
+            "Blower-door airtightness verified below 0.45 ACH",
+            "Green roof planting and micro-grid tie-in on day 12"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "timeline_morph_step",
+      "overline": "03  /  OFF-SITE DELIVERY TIMELINE",
+      "headline": "From laser site scan to turnkey handover in 14 weeks",
+      "active_index": 2,
+      "stages": [
+        {
+          "code": "01",
+          "label": "SITE SCAN",
+          "metric": "48h",
+          "metric_label": "SOLAR AUDIT",
+          "tag": "FIELD PHASE",
+          "title": "Topographic lidar and dynamic thermal twin",
+          "summary": "Millimeter parcel scanning to align orientation, wind corridors, and passive solar gains.",
+          "bullets": [
+            "Drone photogrammetry and geotechnical soil probing",
+            "8,760-hour annual thermal comfort simulation",
+            "Verified lifecycle carbon baseline prior to permit"
+          ]
+        },
+        {
+          "code": "02",
+          "label": "PREFAB",
+          "metric": "6 wks",
+          "metric_label": "INDOOR WORKSHOP",
+          "tag": "SHORT SUPPLY",
+          "title": "CNC timber joinery and earth block pressing",
+          "summary": "Weather-proof factory fabrication within 120 km of the build parcel for zero tolerance drift.",
+          "bullets": [
+            "Excavated site clay sieved and stabilized cement-free",
+            "Wood-fiber insulated structural Douglas fir cassettes",
+            "Factory pre-fitted glazing and concealed MEP conduits"
+          ]
+        },
+        {
+          "code": "03",
+          "label": "DRY ASSEMBLY",
+          "metric": "12 d",
+          "metric_label": "CRANE ERECTION",
+          "tag": "ZERO WASTE",
+          "title": "Quiet crane rigging and immediate weather-tightness",
+          "summary": "Sequential dry-bolted module lifting cutting neighborhood noise and site waste by 5x.",
+          "bullets": [
+            "Reversible mechanical fasteners for circular reuse",
+            "Blower-door airtightness verified below 0.45 ACH",
+            "Green roof planting and micro-grid tie-in on day 12"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "closing_finale",
+      "style": "editorial_statement",
+      "overline": "ATELIER SOLSTICE  //  PUBLIC & PRIVATE COMMISSIONS",
+      "headline": "Inhabit the landscape without exhausting it.",
+      "summary": "Six adaptable typologies spanning forest sanctuaries to net-positive civic studios, backed by 10-year structural warranty.",
+      "cta": "SCHEDULE A STUDIO REVIEW",
+      "metrics": [
+        { "value": "-68%", "label": "STRUCTURAL CO2" },
+        { "value": "14 wks", "label": "TOTAL LEAD TIME" },
+        { "value": "18", "label": "BUILT PAVILIONS" }
+      ]
+    }
+  ]
+}

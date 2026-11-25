@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "morphdeck-3d"
+version = "1.0.0"
+description = "Cinematic 3D glTF + Morph PowerPoint engineering engine and Agent Skill for AI coding agents."
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.10"
+authors = [
+  { name = "Mohamed S. Sissoko (7AK3SH1)", email = "mosissoko2006@gmail.com" }
+]
+keywords = [
+  "powerpoint",
+  "pptx",
+  "gltf",
+  "glb",
+  "3d",
+  "morph",
+  "agent-skills",
+  "presentation",
+  "openxml"
+]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: Apache Software License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Multimedia :: Graphics :: 3D Modeling",
+  "Topic :: Office/Business :: Office Suites"
+]
+dependencies = [
+  "Pillow>=10.0.0",
+  "numpy>=1.24.0",
+  "python-pptx>=1.0.0"
+]
+
+[project.urls]
+Homepage = "https://github.com/7AK3SH1/morphdeck-3d"
+Repository = "https://github.com/7AK3SH1/morphdeck-3d"
+Issues = "https://github.com/7AK3SH1/morphdeck-3d/issues"
+Changelog = "https://github.com/7AK3SH1/morphdeck-3d/blob/main/CHANGELOG.md"

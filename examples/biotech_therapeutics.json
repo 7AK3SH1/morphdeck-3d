@@ -1,0 +1,104 @@
+{
+  "schema_version": 2,
+  "theme": "biotech_luminance",
+  "brand": {
+    "name": "Helixis Bio",
+    "title_part1": "HELIXIS",
+    "title_part2": "BIO",
+    "tagline": "AI-guided precision RNA therapeutics from target discovery to GMP batch release",
+    "monogram": "HB",
+    "logo_path": ""
+  },
+  "palette": {
+    "accent1": "#10B981",
+    "accent2": "#06B6D4",
+    "accent3": "#A3E635"
+  },
+  "hero_3d": {
+    "archetype": "biotech_helix_core"
+  },
+  "assets": {},
+  "slides": [
+    {
+      "type": "cover_hero",
+      "style": "centered_clean",
+      "overline": "COMPUTATIONAL GENOMICS  //  SERIES B PIPELINE BRIEF",
+      "subtitle": "Folding-aware oligo design and cell-line selectivity screening compressing preclinical lead cycles by 4x.",
+      "meta": [
+        { "value": "4.2x", "label": "FASTER LEAD HIT" },
+        { "value": "94.6%", "label": "ON-TARGET SPECIFICITY" },
+        { "value": "3", "label": "PHASE I PROGRAMS" }
+      ]
+    },
+    {
+      "type": "depth_sandwich_pan",
+      "pan_state": "wide",
+      "backdrop_image": "",
+      "giant_word": "GENOME",
+      "overline": "01  /  STRUCTURAL SELECTIVITY",
+      "headline": "Atom-level RNA folding verification",
+      "caption": "4-layer depth composition framing giant display type behind foreground horizon ridge and the 3D helix core."
+    },
+    {
+      "type": "depth_sandwich_pan",
+      "pan_state": "zoom_right",
+      "backdrop_image": "",
+      "giant_word": "PRECISION",
+      "overline": "02  /  CAMERA PAN & ZOOM",
+      "headline": "Continuous 3D Morph dolly pan",
+      "caption": "Zoomed camera sweep shifting text left and rotating the DNA core smoothly into close-up stage right."
+    },
+    {
+      "type": "macro_dolly_3d",
+      "overline": "03  /  MOLECULAR ARCHITECTURE INSPECT",
+      "headline": "Three validation gates built into every construct",
+      "callouts": [
+        {
+          "title": "BIOSENSOR GIMBAL SCREENING",
+          "desc": "Real-time affinity kinetic sweeps across 12,000 primary hepatocyte transcripts."
+        },
+        {
+          "title": "BACKBONE PHOSPHATE STABILITY",
+          "desc": "Stereo-pure chemical modification blocking serum exonuclease degradation for 14 days."
+        },
+        {
+          "title": "ENVELOPE CONTAINMENT CORE",
+          "desc": "Biodegradable lipid nanoparticle shell achieving 91% extra-hepatic tissue clearance."
+        }
+      ]
+    },
+    {
+      "type": "chart_infographic",
+      "chart_type": "radial_rings",
+      "overline": "04  /  PRECLINICAL ASSAY METRICS",
+      "headline": "Reproducible potency verified across three species",
+      "badge": "GLP COHORT",
+      "items": [
+        { "label": "On-Target Knockdown", "value_pct": 94.6, "display_value": "94.6%", "sublabel": "Primary human assay" },
+        { "label": "Off-Target Silence", "value_pct": 99.1, "display_value": "99.1%", "sublabel": "RNA-seq verified" },
+        { "label": "LNP Encapsulation", "value_pct": 92.0, "display_value": "92%", "sublabel": "GMP batch spec" }
+      ],
+      "highlight": {
+        "value": "0.3 nM",
+        "label": "MEDIAN IC50",
+        "desc": "Sub-nanomolar potency maintained cleanly across lead cohort."
+      },
+      "insights": [
+        { "title": "IND-Enabling Ready", "desc": "Toxicology and CMC dossier cleared for Q3 regulatory filing." }
+      ]
+    },
+    {
+      "type": "closing_finale",
+      "style": "editorial_statement",
+      "overline": "HELIXIS BIO  //  CO-DEVELOPMENT PARTNERSHIPS",
+      "headline": "Programmable medicines built on structural proof.",
+      "summary": "Three active clinical-stage RNA programs, automated synthesis lab, and open target-validation partnerships.",
+      "cta": "REQUEST DATA ROOM ACCESS",
+      "metrics": [
+        { "value": "0.3 nM", "label": "LEAD POTENCY" },
+        { "value": "94.6%", "label": "SPECIFICITY" },
+        { "value": "Q3", "label": "IND MILESTONE" }
+      ]
+    }
+  ]
+}
