@@ -217,6 +217,7 @@ def cmd_build(args: argparse.Namespace) -> None:
     use_temp_assets = not bool(args.assets_dir)
     assets_dir = os.path.abspath(args.assets_dir) if args.assets_dir else tempfile.mkdtemp(prefix="morphdeck_assets_")
 
+    staged_ps1 = None
     try:
         if is_v3:
             resolved = prepare_all(os.path.abspath(spec_path), assets_dir)
@@ -230,7 +231,12 @@ def cmd_build(args: argparse.Namespace) -> None:
         use_com = _can_use_com(args.engine)
         if use_com:
             ps = shutil.which("powershell.exe") or shutil.which("powershell")
-            ps1 = os.path.join(SCRIPT_DIR, "build_cinema_deck.ps1" if is_v3 else "build_deck.ps1")
+            ps1_name = "build_cinema_deck.ps1" if is_v3 else "build_deck.ps1"
+            ps1 = os.path.join(SCRIPT_DIR, ps1_name)
+            if not os.path.isfile(ps1) and os.path.isfile(ps1 + ".txt"):
+                staged_ps1 = os.path.join(assets_dir, ps1_name)
+                shutil.copyfile(ps1 + ".txt", staged_ps1)
+                ps1 = staged_ps1
             build_cmd = [
                 ps, "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", ps1,
                 "-SpecJson", os.path.abspath(spec_path),
@@ -268,6 +274,8 @@ def cmd_build(args: argparse.Namespace) -> None:
             if rc != 0:
                 sys.exit(rc)
     finally:
+        if staged_ps1 and os.path.isfile(staged_ps1):
+            os.remove(staged_ps1)
         if use_temp_assets and os.path.isdir(assets_dir):
             shutil.rmtree(assets_dir, ignore_errors=True)
 
