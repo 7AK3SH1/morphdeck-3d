@@ -241,7 +241,45 @@ class TestMorphDeck3D(unittest.TestCase):
                 json.dump(spec, f)
             prepare_all(spec_p, assets_d)
             build_cinema_crossplatform(spec_p, assets_d, out_pptx)
-            self.assertEqual(verify_pptx(out_pptx, require_3d=False), 0)
+            self.assertEqual(verify_pptx(out_pptx, require_3d=False, require_morph_pairs=True), 0)
+
+    def test_v4_portal_and_elevator_morph_continuity_and_alpha_dissolve(self):
+        spec = {
+            "schema_version": 4,
+            "universe": "architectural_portal",
+            "brand": {"name": "Optical Test", "monogram": "OT"},
+            "slides": [
+                {"type": "real_portal_flythrough", "stage": "exterior", "headline": "Exterior Pavilion"},
+                {"type": "real_portal_flythrough", "stage": "interior", "headline": "Interior Mullions", "body": "Seamless fly-through."},
+                {"type": "vertical_world_elevator", "elevator_stop": "upper_sky", "giant_word": "SUMMIT", "headline": "Sky Layer"},
+                {
+                    "type": "vertical_world_elevator",
+                    "elevator_stop": "lower_ground",
+                    "giant_word": "SUMMIT",
+                    "headline": "Ground Layer",
+                    "cards": [{"value": "2x", "title": "SSAA", "desc": "Crisp edges."}],
+                },
+                {
+                    "type": "refracted_spotlight_dock",
+                    "dock_index": 0,
+                    "spotlight": {"tag": "01", "title": "Glass Dock", "subtitle": "Refracted", "body": "Clean."},
+                    "dock": [{"title": "One", "subtitle": "First"}],
+                },
+                {"type": "closing_finale", "headline": "Finale", "summary": "Verified.", "metrics": [{"value": "100%", "label": "MORPH"}]},
+            ],
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            spec_p = os.path.join(tmp, "v4_portal.json")
+            assets_d = os.path.join(tmp, "assets")
+            out_pptx = os.path.join(tmp, "v4_portal.pptx")
+            with open(spec_p, "w", encoding="utf-8") as f:
+                json.dump(spec, f)
+            prepare_all(spec_p, assets_d)
+            build_cinema_crossplatform(spec_p, assets_d, out_pptx)
+            self.assertEqual(verify_pptx(out_pptx, require_3d=False, require_morph_pairs=True), 0)
+            with zipfile.ZipFile(out_pptx, "r") as z:
+                s2 = z.read("ppt/slides/slide2.xml").decode("utf-8")
+                self.assertIn('alphaModFix amt="0"', s2)
 
     def test_v3_lighting_universes(self):
         sample_xml = (

@@ -2,10 +2,10 @@
 # Copyright 2026 Mohamed S. Sissoko (7AK3SH1)
 # Licensed under the Apache License, Version 2.0 (see LICENSE and NOTICE).
 """
-Automated OpenXML, Morph, GLB, Emoji, and 1080p Render Verification Gate
-for morphdeck-3d presentations.
+Automated OpenXML, True-Morph Pair Continuity, GLB, Lighting, Emoji, and 1080p Render
+Verification Gate for morphdeck-3d v4.0.0 presentations.
 
-Exits with code 0 only if every check passes.
+Exits with code 0 only if every structural, motion-continuity, and visual gate passes.
 """
 
 import argparse
@@ -22,12 +22,56 @@ EMOJI_RE = re.compile(
 )
 
 
+def _extract_bang_transforms(slide_xml: bytes) -> dict[str, tuple]:
+    ns = {
+        "p": "http://schemas.openxmlformats.org/presentationml/2006/main",
+        "a": "http://schemas.openxmlformats.org/drawingml/2006/main",
+        "am3d": "http://schemas.microsoft.com/office/drawing/2017/model3d",
+    }
+    root = ET.fromstring(slide_xml)
+    sp_tree = root.find(".//p:spTree", ns)
+    if sp_tree is None:
+        return {}
+    actors: dict[str, tuple] = {}
+    for el in list(sp_tree):
+        cnv = el.find(".//p:cNvPr", ns)
+        if cnv is None:
+            continue
+        name = cnv.attrib.get("name", "")
+        if not name.startswith("!!"):
+            continue
+        xfrm = el.find(".//a:xfrm", ns)
+        geom = ()
+        if xfrm is not None:
+            off = xfrm.find("a:off", ns)
+            ext = xfrm.find("a:ext", ns)
+            rot = xfrm.attrib.get("rot", "0")
+            if off is not None and ext is not None:
+                geom = (
+                    int(off.attrib.get("x", "0")),
+                    int(off.attrib.get("y", "0")),
+                    int(ext.attrib.get("cx", "0")),
+                    int(ext.attrib.get("cy", "0")),
+                    rot,
+                )
+        # Also include 3D camera/model rotation and alphaModFix so 3D orbital spins count as motion
+        m3d_rot = tuple(
+            (r.attrib.get("ax", ""), r.attrib.get("ay", ""), r.attrib.get("az", ""))
+            for r in el.findall(".//am3d:rot", ns)
+        )
+        amf = el.find(".//a:alphaModFix", ns)
+        alpha = amf.attrib.get("amt", "100000") if amf is not None else "100000"
+        actors[name] = (geom, m3d_rot, alpha)
+    return actors
+
+
 def verify_pptx(
     pptx_path: str,
     renders_dir: str = None,
     require_3d: bool = True,
     allow_emojis: bool = False,
     require_lighting: bool = False,
+    require_morph_pairs: bool = False,
 ) -> int:
     failures = []
     if not os.path.exists(pptx_path):
@@ -59,7 +103,7 @@ def verify_pptx(
         if ext_links:
             failures.append(f"External relationships leaked: {ext_links}")
 
-        # 2. Slide-level Morph & Emoji check
+        # 2. Slide-level Morph, Pair Continuity & Emoji check
         slides = [n for n in names if re.match(r"^ppt/slides/slide\d+\.xml$", n)]
         slides.sort(key=lambda s: int(re.search(r"slide(\d+)\.xml$", s).group(1)))
         if not slides:
@@ -68,8 +112,12 @@ def verify_pptx(
         emoji_hits = []
         pt_light_count = 0
         model3d_count = 0
-        for s in slides:
-            txt = z.read(s).decode("utf-8")
+        prev_actors: dict[str, tuple] = {}
+        pair_stats: list[tuple[int, int]] = []
+
+        for idx, s in enumerate(slides, start=1):
+            raw_s = z.read(s)
+            txt = raw_s.decode("utf-8")
             pt_light_count += txt.count("<am3d:ptLight")
             model3d_count += txt.count("<am3d:model3d")
             if "mc:AlternateContent" not in txt or "p159:morph" not in txt:
@@ -79,6 +127,15 @@ def verify_pptx(
                 for t in root.findall(".//{http://schemas.openxmlformats.org/drawingml/2006/main}t"):
                     if t.text and EMOJI_RE.search(t.text):
                         emoji_hits.append((s, t.text))
+
+            cur_actors = _extract_bang_transforms(raw_s)
+            if idx > 1:
+                shared = set(cur_actors) & set(prev_actors)
+                moving = [k for k in shared if cur_actors[k] != prev_actors[k]]
+                pair_stats.append((len(shared), len(moving)))
+                if require_morph_pairs and len(moving) == 0:
+                    failures.append(f"Transition slide {idx - 1}->{idx} has 0 moving '!!' Morph actors (shared={sorted(shared)})")
+            prev_actors = cur_actors
 
         if emoji_hits:
             failures.append(f"Emoji characters found in text runs: {emoji_hits[:3]}")
@@ -106,12 +163,13 @@ def verify_pptx(
                         failures.append(f"{rp} appears blank/flat (max channel stddev={max_std:.2f})")
 
     print(f"Package: {pptx_path} ({size_bytes} bytes)")
-    print(f"Slides verified: {len(slides)} | XML errors: {xml_errors} | External links: {len(ext_links)}")
+    min_moving = min((m for _, m in pair_stats), default=0)
+    print(f"Slides verified: {len(slides)} | XML errors: {xml_errors} | External links: {len(ext_links)} | Min moving Morph actors/transition: {min_moving}")
     if glb_sizes:
         print(f"Embedded GLBs ({len(glbs)}): {glb_sizes}")
         print(f"Studio 3D Lights: {pt_light_count} point light(s) across {model3d_count} <am3d:model3d> node(s)")
     else:
-        print("Embedded GLBs (0): cross-platform studio-rendered 3D deck (OK)")
+        print("Embedded GLBs (0): cross-platform Z-buffered studio 3D deck (OK)")
     if renders_dir:
         print(f"Renders checked in: {renders_dir}")
 
@@ -126,14 +184,24 @@ def verify_pptx(
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Verify PPTX integrity, Morph compliance, 3D GLB embedding, and 1080p renders.")
+    parser = argparse.ArgumentParser(description="Verify PPTX integrity, True-Morph pair continuity, 3D GLB embedding, and 1080p renders.")
     parser.add_argument("pptx", help="Path to generated .pptx presentation")
     parser.add_argument("--renders-dir", help="Optional directory containing exported slide_1..slide_N.png renders")
-    parser.add_argument("--crossplatform", action="store_true", help="Allow cross-platform 2D-rendered 3D builds without binary .glb embedding")
+    parser.add_argument("--crossplatform", action="store_true", help="Allow cross-platform Z-buffered 3D builds without binary .glb embedding")
     parser.add_argument("--require-lighting", action="store_true", help="Require >= 3 studio <am3d:ptLight> nodes per <am3d:model3d>")
+    parser.add_argument("--require-morph-pairs", action="store_true", help="Require >= 1 transforming '!!' Morph actor across every slide pair")
     parser.add_argument("--allow-emojis", action="store_true", help="Allow Unicode emojis in slide text")
     args = parser.parse_args()
-    sys.exit(verify_pptx(args.pptx, args.renders_dir, require_3d=not args.crossplatform, allow_emojis=args.allow_emojis, require_lighting=args.require_lighting))
+    sys.exit(
+        verify_pptx(
+            args.pptx,
+            args.renders_dir,
+            require_3d=not args.crossplatform,
+            allow_emojis=args.allow_emojis,
+            require_lighting=args.require_lighting,
+            require_morph_pairs=args.require_morph_pairs,
+        )
+    )
 
 
 if __name__ == "__main__":

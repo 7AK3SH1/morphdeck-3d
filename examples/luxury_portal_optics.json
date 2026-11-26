@@ -15,11 +15,7 @@
       "stage": "exterior",
       "overline": "PORTAL CHOREOGRAPHY  //  CHAPTER 01",
       "headline": "Look Through Authentic Architecture",
-      "portal_outer_query": "Louvre Pyramid courtyard",
-      "portal_inner_query": "Uffizi gallery Florence hall",
-      "portal_bg_query": "Matterhorn peak snow",
-      "outer_box": [0.27, 0.18, 0.73, 0.82],
-      "inner_box": [0.18, 0.12, 0.82, 0.88],
+      "portal_bg_query": "Lauterbrunnen valley Swiss Alps",
       "bottom_cue": "REAL OPEN-LICENSE PHOTOGRAPHY + HIGH-POLY GLB"
     },
     {
@@ -73,7 +69,7 @@
     {
       "type": "refracted_spotlight_dock",
       "dock_index": 1,
-      "bg_query": "Uffizi gallery Florence hall",
+      "bg_query": "Dolomites Odle mountain landscape",
       "spotlight": {
         "tag": "MATERIAL STUDY  //  02",
         "title": "Backdrop-Refracted Glass Dock",
@@ -81,10 +77,10 @@
         "body": "Each dock panel refracts its exact underlying pixel coordinates and carries a gliding active highlight frame."
       },
       "dock": [
-        { "title": "Exterior", "subtitle": "Portal Entry", "query": "Louvre Pyramid courtyard" },
-        { "title": "Gallery", "subtitle": "Optics Hall", "query": "Uffizi gallery Florence hall" },
+        { "title": "Pavilion", "subtitle": "Portal Entry", "query": "Lauterbrunnen valley Swiss Alps" },
+        { "title": "Dolomites", "subtitle": "Alpine Ridge", "query": "Dolomites Odle mountain landscape" },
         { "title": "Glacier", "subtitle": "High Altitude", "query": "Matterhorn peak snow" },
-        { "title": "Studio", "subtitle": "PBR Close-Up", "query": "Louvre gallery hall painting room" }
+        { "title": "Rotunda", "subtitle": "Classical Dome", "query": "Pantheon Rome interior dome" }
       ]
     },
     {

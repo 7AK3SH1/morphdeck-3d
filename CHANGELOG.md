@@ -2,6 +2,17 @@
 
 All notable changes to **morphdeck-3d** will be documented in this file.
 
+## [4.0.0] - 2026-11-26 - True-Morph Physics & Museum-Grade 3D Optics
+
+### Added
+- **Unbroken True-Morph Pre/Post-Staging & Optical Alpha Dissolves (`<a:alphaModFix amt="0"/>`)**: Unified across both `scripts/build_cinema_deck.ps1` (Windows COM) and `scripts/build_cinema_crossplatform.py` (macOS/Linux/CI) so every adjacent slide pair animates `>= 2` shared `!!` Morph actors with staggered velocity curves, pre-masked odometer strips, and live `<am3d:model3d>` concentric frame-shrink.
+- **True Cantilevered Infinity-Pool Architectural Portals & Mullioned Interiors (`render_architectural_portal_exterior`, `render_architectural_portal_interior`)**: Synthesizes perspective architectural pavilions with live water-rippled reflections of the 4K background landscape and floor-to-ceiling steel mullions (replacing rectangular sticker punches).
+- **Cloud-Proof 1D Dynamic-Programming Sky-Split Horizon Matting (`split_horizon_cutout`)**: Guarantees `100%` cloud-free upper sky (`alpha = 0`) behind giant `132pt` display typography while preserving crisp mountain silhouettes below.
+- **2x-SSAA Z-Buffered Smooth-Phong & Bilinear-PBR `.glb` Renderer (`scripts/render_glb_preview.py`)**: Full glTF 2.0 scene-graph node traversal (`TRS` quaternions + `4x4` matrices), floating-point Z-buffer, smooth vertex-normal interpolation, bilinear PBR texture lookup, and 2x supersampled anti-aliasing.
+- **Juried Wikimedia Featured & Quality Photography Selector (`scripts/fetch_real_photo.py`)**: Prioritizes `Featured_pictures_on_Wikimedia_Commons` and `Quality_images` while rejecting tourist crowds and photo montages.
+- **Museum Gallery Spotlight Wall, Mitered Gilt Frame, Deckle Vellum & Optical ND Scrims (`scripts/studio_cutout.py`)**: Eliminates clunky opaque UI boxes in favor of optical exposure gradients (`apply_tonal_text_scrim`), tourist-free parabolic-spotlight museum walls (`render_gallery_wall_room`), 3D mitered gilt frames, and non-repetitive archival broadsheet articles.
+- **Automated Morph Pair Continuity Gate (`verify_deck.py --require-morph-pairs`)**: Fails verification if any slide transition in a v3/v4 presentation has zero moving `!!` Morph actors.
+
 ## [3.0.0] - 2026-11-25 - Cinema-Morph & Photorealistic 3D
 
 ### Added

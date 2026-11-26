@@ -2,13 +2,12 @@
 # Copyright 2026 7AK3SH1
 # Licensed under the Apache License, Version 2.0 (see LICENSE and NOTICE).
 """
-Cinema-Morph Asset Orchestrator for morphdeck-3d v3.0.0.
+Cinema-Morph v4.0.0 Asset Orchestrator for morphdeck-3d.
 
-Resolves real high-poly CC0 .glb models (NEVER procedural toy meshes),
-fetches real open-license landscape photography via Wikimedia Commons when needed,
-and prepares studio cutouts, architectural portal masks, sky-split horizons,
-archival broadsheets, organic ink drips, cloud sweeps, hollow museum frames,
-frosted refracted UI containers, and 2x supersampled charts/architecture diagrams.
+Resolves real high-poly CC0 .glb models, juried Wikimedia Featured/Quality photography,
+infinity-pool architectural portal pavilions, cloud-proof 1D horizon sky splits,
+tourist-free museum spotlight walls, mitered gilt frames, optical ND text scrims,
+backdrop-refracted glass docks, and 2x supersampled editorial charts/blueprints.
 """
 
 import argparse
@@ -29,6 +28,7 @@ from fetch_real_glb import fetch_khronos_glb, fetch_nasa_glb, fetch_polyhaven_gl
 from fetch_real_photo import fetch_url_photo, fetch_wikimedia_photo  # noqa: E402
 from render_glb_preview import render_glb_to_image  # noqa: E402
 from studio_cutout import (  # noqa: E402
+    apply_tonal_text_scrim,
     cover_crop,
     generate_newspaper_sheet,
     hex_to_rgb,
@@ -36,7 +36,10 @@ from studio_cutout import (  # noqa: E402
     make_contact_shadow,
     make_studio_cutout,
     punch_portal_mask,
+    render_architectural_portal_exterior,
+    render_architectural_portal_interior,
     render_cloud_sweep,
+    render_gallery_wall_room,
     render_hollow_gold_frame,
     render_organic_ink_drips,
     render_refracted_glass_dock,
@@ -53,7 +56,7 @@ UNIVERSES = {
         "surface_alt": "#DFD6C3",
         "ink": "#161618",
         "ink_muted": "#544E46",
-        "border": "#B8AE9E",
+        "border": "#C5BBA8",
         "accents": ["#B91C1C", "#1F2937", "#B45309"],
         "display_font": "Georgia",
         "heading_font": "Bahnschrift",
@@ -65,7 +68,7 @@ UNIVERSES = {
         "is_light": True,
         "bg": "#F4EFE6",
         "surface": "#FAF7F2",
-        "surface_alt": "#161412",
+        "surface_alt": "#181A20",
         "ink": "#141413",
         "ink_muted": "#57534E",
         "border": "#D6CFC4",
@@ -80,10 +83,10 @@ UNIVERSES = {
         "is_light": False,
         "bg": "#0A0C12",
         "surface": "#141824",
-        "surface_alt": "#1E2436",
+        "surface_alt": "#1A1E2B",
         "ink": "#F8FAFC",
         "ink_muted": "#94A3B8",
-        "border": "#334155",
+        "border": "#2E384D",
         "accents": ["#E07A5F", "#38BDF8", "#D4AF37"],
         "display_font": "Georgia",
         "heading_font": "Bahnschrift",
@@ -94,11 +97,11 @@ UNIVERSES = {
     "commercial_studio": {
         "is_light": False,
         "bg": "#080A0F",
-        "surface": "#131722",
-        "surface_alt": "#1B2130",
+        "surface": "#121620",
+        "surface_alt": "#191F2E",
         "ink": "#FFFFFF",
         "ink_muted": "#94A3B8",
-        "border": "#2D3748",
+        "border": "#283244",
         "accents": ["#E11D48", "#38BDF8", "#F59E0B"],
         "display_font": "Bahnschrift",
         "heading_font": "Impact",
@@ -140,33 +143,33 @@ UNIVERSES = {
 
 
 def draw_glass_or_swiss_card(
-    w: int, h: int, surf_rgb: tuple, acc_rgb: tuple, border_rgb: tuple, is_light: bool, radius: int = 24, bar_mode: str = "left"
+    w: int, h: int, surf_rgb: tuple, acc_rgb: tuple, border_rgb: tuple, is_light: bool, radius: int = 20, bar_mode: str = "left"
 ) -> Image.Image:
     canvas = Image.new("RGBA", (w, h), (0, 0, 0, 0))
     sh = Image.new("RGBA", (w, h), (0, 0, 0, 0))
-    sh_alpha = 46 if is_light else 148
+    sh_alpha = 34 if is_light else 120
     ImageDraw.Draw(sh).rounded_rectangle([10, 12, w - 10, h - 6], radius=radius + 2, fill=(0, 0, 0, sh_alpha))
     canvas = Image.alpha_composite(canvas, sh.filter(ImageFilter.GaussianBlur(8)))
 
     d = ImageDraw.Draw(canvas)
-    fill_a = 244 if is_light else 218
-    out_col = (*border_rgb, 210) if is_light else (255, 255, 255, 62)
-    d.rounded_rectangle([6, 6, w - 6, h - 10], radius=radius, fill=(*surf_rgb, fill_a), outline=out_col, width=2)
+    fill_a = 246 if is_light else 214
+    out_col = (*border_rgb, 185) if is_light else (255, 255, 255, 44)
+    d.rounded_rectangle([6, 6, w - 6, h - 10], radius=radius, fill=(*surf_rgb, fill_a), outline=out_col, width=1)
     if not is_light:
-        d.line([(6 + radius, 8), (w - 6 - radius, 8)], fill=(255, 255, 255, 138), width=2)
+        d.line([(6 + radius, 7), (w - 6 - radius, 7)], fill=(255, 255, 255, 110), width=1)
 
     if bar_mode == "left":
-        d.rounded_rectangle([6, 22, 14, h - 26], radius=4, fill=(*acc_rgb, 245))
+        d.rounded_rectangle([6, 22, 12, h - 26], radius=3, fill=(*acc_rgb, 240))
     elif bar_mode == "top":
-        d.rounded_rectangle([6 + radius, 6, w - 6 - radius, 13], radius=3, fill=(*acc_rgb, 245))
+        d.rounded_rectangle([6 + radius, 6, w - 6 - radius, 11], radius=2, fill=(*acc_rgb, 240))
     return canvas
 
 
 def _build_textured_canvas(w: int, h: int, bg_rgb: tuple, seed: int = 7) -> Image.Image:
     rng = np.random.default_rng(seed)
     yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
-    vig = ((((xx - w * 0.5) / (w * 0.62)) ** 2 + ((yy - h * 0.5) / (h * 0.62)) ** 2) * 16).clip(0, 26).astype(np.int16)[..., None]
-    noise = rng.integers(-5, 6, size=(h, w, 1), dtype=np.int16)
+    vig = ((((xx - w * 0.5) / (w * 0.65)) ** 2 + ((yy - h * 0.5) / (h * 0.65)) ** 2) * 14).clip(0, 24).astype(np.int16)[..., None]
+    noise = rng.integers(-4, 5, size=(h, w, 1), dtype=np.int16)
     arr = np.clip(np.full((h, w, 3), bg_rgb, dtype=np.int16) + noise - vig, 0, 255).astype(np.uint8)
     return Image.fromarray(arr, "RGB")
 
@@ -182,7 +185,7 @@ def _render_chart_png(resolved: dict, slide: dict, out_path: str) -> None:
     accents = [hex_to_rgb(pal["accent1"]), hex_to_rgb(pal["accent2"]), hex_to_rgb(pal["accent3"])]
 
     W, H = 2360, 1520
-    img = draw_glass_or_swiss_card(W, H, surf, accents[0], border, is_light, radius=44, bar_mode="none")
+    img = draw_glass_or_swiss_card(W, H, surf, accents[0], border, is_light, radius=38, bar_mode="none")
     d = ImageDraw.Draw(img)
     f_num = load_font("bahnschrift", 90, 700)
     f_lbl = load_font("bahnschrift", 40, 700)
@@ -233,7 +236,7 @@ def _render_chart_png(resolved: dict, slide: dict, out_path: str) -> None:
             if delta:
                 dbb = d.textbbox((0, 0), delta, font=f_mono)
                 pw = (dbb[2] - dbb[0]) + 44
-                d.rounded_rectangle([W - 100 - pw, ry - 4, W - 100, ry + 50], radius=14, fill=(*col, 42), outline=col, width=2)
+                d.rounded_rectangle([W - 100 - pw, ry - 4, W - 100, ry + 50], radius=14, fill=(*col, 38), outline=col, width=2)
                 d.text((W - 100 - pw + 22, ry + 6), delta, font=f_mono, fill=col)
 
     img.resize((1180, 760), Image.Resampling.LANCZOS).save(out_path, "PNG")
@@ -250,7 +253,7 @@ def _render_arch_png(resolved: dict, slide: dict, out_path: str) -> None:
     accents = [hex_to_rgb(pal["accent1"]), hex_to_rgb(pal["accent2"]), hex_to_rgb(pal["accent3"])]
 
     W, H = 2560, 1592
-    img = draw_glass_or_swiss_card(W, H, surf, accents[0], border, is_light, radius=44, bar_mode="none")
+    img = draw_glass_or_swiss_card(W, H, surf, accents[0], border, is_light, radius=38, bar_mode="none")
     d = ImageDraw.Draw(img)
     f_layer = load_font("consolas_bold", 28)
     f_node_t = load_font("bahnschrift", 38, 700)
@@ -267,7 +270,7 @@ def _render_arch_png(resolved: dict, slide: dict, out_path: str) -> None:
     for li, layer in enumerate(layers):
         ly = top_pad + li * (layer_h + gap_y)
         col = accents[li % len(accents)]
-        d.rounded_rectangle([margin_x, ly, W - margin_x, ly + layer_h], radius=24, fill=(*surf_alt, 220), outline=(*col, 180), width=3)
+        d.rounded_rectangle([margin_x, ly, W - margin_x, ly + layer_h], radius=24, fill=(*surf_alt, 220), outline=(*col, 175), width=2)
         d.text((margin_x + 34, ly + 22), str(layer.get("name", f"LAYER {li + 1}")).upper()[:34], font=f_layer, fill=col)
 
         nodes = layer.get("nodes", [])[:4]
@@ -278,23 +281,23 @@ def _render_arch_png(resolved: dict, slide: dict, out_path: str) -> None:
         node_w = ((W - margin_x * 2 - 68) - inner_gap * (n_nodes - 1)) // n_nodes
         for ni, nd in enumerate(nodes):
             nx = margin_x + 34 + ni * (node_w + inner_gap)
-            d.rounded_rectangle([nx, inner_top, nx + node_w, inner_top + inner_h], radius=18, fill=(*surf, 245), outline=(*border, 255), width=3)
-            d.rounded_rectangle([nx, inner_top, nx + 10, inner_top + inner_h], radius=4, fill=col)
-            d.text((nx + 32, inner_top + 22), str(nd.get("title", ""))[:26], font=f_node_t, fill=ink)
+            d.rounded_rectangle([nx, inner_top, nx + node_w, inner_top + inner_h], radius=18, fill=(*surf, 245), outline=(*border, 255), width=2)
+            d.rounded_rectangle([nx, inner_top, nx + 8, inner_top + inner_h], radius=4, fill=col)
+            d.text((nx + 30, inner_top + 22), str(nd.get("title", ""))[:26], font=f_node_t, fill=ink)
             for wi, line in enumerate(textwrap.wrap(str(nd.get("subtitle", "")), width=max(18, int((node_w - 60) / 17)))[:2]):
-                d.text((nx + 32, inner_top + 78 + wi * 38), line, font=f_node_s, fill=muted)
+                d.text((nx + 30, inner_top + 78 + wi * 38), line, font=f_node_s, fill=muted)
 
         if li < n_layers - 1:
             ay1, ay2 = ly + layer_h + 6, ly + layer_h + gap_y - 6
             mid_y = (ay1 + ay2) // 2
             for ax in (W // 4, W // 2, (W * 3) // 4):
-                d.line([(ax, ay1), (ax, ay2 - 12)], fill=col, width=5)
-                d.polygon([(ax, ay2), (ax - 12, ay2 - 18), (ax + 12, ay2 - 18)], fill=col)
+                d.line([(ax, ay1), (ax, ay2 - 12)], fill=col, width=4)
+                d.polygon([(ax, ay2), (ax - 11, ay2 - 17), (ax + 11, ay2 - 17)], fill=col)
             if li < len(flows) and flows[li]:
                 fl = flows[li]
                 fbb = d.textbbox((0, 0), fl, font=f_tag)
                 fw = (fbb[2] - fbb[0]) + 44
-                d.rounded_rectangle([W // 2 - fw // 2, mid_y - 20, W // 2 + fw // 2, mid_y + 20], radius=16, fill=(*surf, 255), outline=col, width=3)
+                d.rounded_rectangle([W // 2 - fw // 2, mid_y - 20, W // 2 + fw // 2, mid_y + 20], radius=16, fill=(*surf, 255), outline=col, width=2)
                 d.text((W // 2 - (fbb[2] - fbb[0]) // 2, mid_y - 13), fl, font=f_tag, fill=col)
 
     img.resize((1280, 796), Image.Resampling.LANCZOS).save(out_path, "PNG")
@@ -323,7 +326,7 @@ def normalize_spec(raw_spec: dict) -> dict:
     is_light = bool(spec.get("is_light", pal_in.get("is_light", ucfg["is_light"])))
 
     return {
-        "schema_version": 3,
+        "schema_version": int(spec.get("schema_version", 4)),
         "universe": universe,
         "is_light": is_light,
         "brand": spec.get("brand", {"name": "Presentation", "monogram": "PR"}),
@@ -426,25 +429,25 @@ def prepare_all(spec_path: str, out_dir: str) -> dict:
 
     _build_textured_canvas(1920, 1080, bg_rgb, seed=11).save(os.path.join(out_dir, "bg_base.png"), "PNG")
     _build_textured_canvas(1920, 1080, hex_to_rgb(pal["surface_alt"]), seed=22).save(os.path.join(out_dir, "bg_alt.png"), "PNG")
-    make_contact_shadow(os.path.join(out_dir, "shadow_hero.png"), 640, 140, 175)
+    make_contact_shadow(os.path.join(out_dir, "shadow_hero.png"), 640, 140, 150)
 
-    draw_glass_or_swiss_card(1060, 148, surf_rgb, acc1, border_rgb, is_light, 22, "left").save(os.path.join(out_dir, "card_step.png"), "PNG")
+    draw_glass_or_swiss_card(1060, 148, surf_rgb, acc1, border_rgb, is_light, 20, "left").save(os.path.join(out_dir, "card_step.png"), "PNG")
     for ci, ac in enumerate([acc1, acc2, acc3], start=1):
-        draw_glass_or_swiss_card(730, 192, surf_rgb, ac, border_rgb, is_light, 22, "left").save(os.path.join(out_dir, f"card_spec_{ci}.png"), "PNG")
-        draw_glass_or_swiss_card(552, 420, surf_rgb, ac, border_rgb, is_light, 24, "top").save(os.path.join(out_dir, f"card_bento_tile_{ci}.png"), "PNG")
-    draw_glass_or_swiss_card(672, 768, surf_rgb, acc1, border_rgb, is_light, 26, "top").save(os.path.join(out_dir, "card_bento_hero.png"), "PNG")
-    draw_glass_or_swiss_card(1732, 296, surf_rgb, acc1, border_rgb, is_light, 26, "left").save(os.path.join(out_dir, "card_bento_strip.png"), "PNG")
-    draw_glass_or_swiss_card(1024, 520, surf_rgb, acc1, border_rgb, is_light, 26, "left").save(os.path.join(out_dir, "card_panel.png"), "PNG")
-    draw_glass_or_swiss_card(1760, 256, surf_rgb, acc1, border_rgb, is_light, 34, "none").save(os.path.join(out_dir, "dock_bg.png"), "PNG")
+        draw_glass_or_swiss_card(730, 192, surf_rgb, ac, border_rgb, is_light, 20, "left").save(os.path.join(out_dir, f"card_spec_{ci}.png"), "PNG")
+        draw_glass_or_swiss_card(552, 420, surf_rgb, ac, border_rgb, is_light, 22, "top").save(os.path.join(out_dir, f"card_bento_tile_{ci}.png"), "PNG")
+    draw_glass_or_swiss_card(672, 768, surf_rgb, acc1, border_rgb, is_light, 24, "top").save(os.path.join(out_dir, "card_bento_hero.png"), "PNG")
+    draw_glass_or_swiss_card(1732, 296, surf_rgb, acc1, border_rgb, is_light, 24, "left").save(os.path.join(out_dir, "card_bento_strip.png"), "PNG")
+    draw_glass_or_swiss_card(1024, 520, surf_rgb, acc1, border_rgb, is_light, 24, "left").save(os.path.join(out_dir, "card_panel.png"), "PNG")
+    draw_glass_or_swiss_card(1760, 256, surf_rgb, acc1, border_rgb, is_light, 32, "none").save(os.path.join(out_dir, "dock_bg.png"), "PNG")
 
+    # Sleek borderless frosted active glider capsule + crisp bottom underline (replaces heavy orange box)
     gw, gh = 416, 216
     glider = Image.new("RGBA", (gw, gh), (0, 0, 0, 0))
     gd = ImageDraw.Draw(glider)
-    gd.rounded_rectangle([4, 4, gw - 4, gh - 4], radius=26, fill=(*acc1, 52), outline=(*acc1, 235), width=3)
-    gd.line([(34, 6), (gw - 34, 6)], fill=(255, 255, 255, 175), width=2)
+    gd.rounded_rectangle([4, 4, gw - 4, gh - 4], radius=24, fill=(255, 255, 255, 38), outline=(255, 255, 255, 128), width=2)
+    gd.rounded_rectangle([24, gh - 10, gw - 24, gh - 5], radius=3, fill=(255, 255, 255, 235))
     glider.save(os.path.join(out_dir, "dock_glider.png"), "PNG")
 
-    # Reusable documentary & cinematic FX overlays
     render_organic_ink_drips(os.path.join(out_dir, "ep_drips.png"), color_hex=pal["accent1"])
     render_soft_paper_cloud(os.path.join(out_dir, "ep_paper_cloud.png"), paper_hex=pal["surface"])
     render_cloud_sweep(os.path.join(out_dir, "flyby_cloud.png"))
@@ -452,7 +455,7 @@ def prepare_all(spec_path: str, out_dir: str) -> dict:
 
     resolved_glb_out = _resolve_glb_entry(resolved.get("hero_3d", {}), os.path.join(out_dir, "hero_real.glb"), rel)
     if resolved_glb_out and os.path.exists(resolved_glb_out):
-        render_glb_to_image(resolved_glb_out, 720, 720, 12.0, -22.0, 2.0, theme=universe).save(
+        render_glb_to_image(resolved_glb_out, 640, 640, 12.0, -22.0, 2.0, theme=universe, ssaa=1).save(
             os.path.join(out_dir, "hero_cutout_auto.png"), "PNG"
         )
 
@@ -463,7 +466,6 @@ def prepare_all(spec_path: str, out_dir: str) -> dict:
     for idx, sl in enumerate(resolved["slides"], start=1):
         st = sl.get("type", "")
 
-        # Resolve slide-level Wikimedia / URL photography fields cleanly
         for p_key, q_key, u_key in (
             ("bg_image", "bg_query", "bg_url"),
             ("map_image", "map_query", "map_url"),
@@ -475,7 +477,10 @@ def prepare_all(spec_path: str, out_dir: str) -> dict:
             res_p = _resolve_photo_field(sl, p_key, q_key, u_key, out_dir, f"s{idx}_{p_key}", rel)
             if res_p and os.path.exists(res_p):
                 dst_crop = os.path.join(out_dir, f"s{idx}_{p_key}.png")
-                cover_crop(Image.open(res_p).convert("RGB"), 1920, 1080).save(dst_crop, "PNG")
+                cropped = cover_crop(Image.open(res_p).convert("RGB"), 1920, 1080)
+                if p_key == "bg_image" and st in ("flyby_wipe", "refracted_spotlight_dock", "closing_finale"):
+                    cropped = apply_tonal_text_scrim(cropped, zone="left", strength=0.62)
+                cropped.save(dst_crop, "PNG")
                 sl[f"_{p_key}"] = dst_crop
 
         if st in ("newspaper_dive", "editorial_print_overlay") and not news_done:
@@ -502,7 +507,6 @@ def prepare_all(spec_path: str, out_dir: str) -> dict:
                 )
             news_done = True
 
-        # Cutout helpers on slides: supports studio photo OR real GLB-rendered cutout (`*_glb` spec)!
         for field_key, out_suffix in (
             ("left_cutout", f"s{idx}_left_cutout.png"),
             ("right_cutout", f"s{idx}_right_cutout.png"),
@@ -525,40 +529,95 @@ def prepare_all(spec_path: str, out_dir: str) -> dict:
                 gpath = _resolve_glb_entry(gcfg, os.path.join(out_dir, f"_tmp_{field_key}_{idx}.glb"), rel)
                 if gpath and os.path.exists(gpath):
                     render_glb_to_image(
-                        gpath, 720, 720,
-                        float(gcfg.get("rx", 12.0)), float(gcfg.get("ry", -24.0)), float(gcfg.get("rz", 2.0)),
+                        gpath,
+                        680,
+                        680,
+                        float(gcfg.get("rx", 12.0)),
+                        float(gcfg.get("ry", -24.0)),
+                        float(gcfg.get("rz", 2.0)),
                         theme=universe,
+                        ssaa=2,
                     ).save(dst_p, "PNG")
                     sl[f"_{field_key}"] = dst_p
 
         if st == "real_portal_flythrough" and not portal_done:
-            out_src = _resolve_photo_field(sl, "portal_outer_image", "portal_outer_query", "portal_outer_url", out_dir, f"s{idx}_pout", rel)
-            in_src = _resolve_photo_field(sl, "portal_inner_image", "portal_inner_query", "portal_inner_url", out_dir, f"s{idx}_pin", rel)
             bg_src = _resolve_photo_field(sl, "portal_bg_image", "portal_bg_query", "portal_bg_url", out_dir, f"s{idx}_pbg", rel) or sl.get("_bg_image", "")
-
-            if out_src and os.path.exists(out_src):
-                box = tuple(sl.get("outer_box", [0.27, 0.18, 0.73, 0.82]))
-                punch_portal_mask(out_src, os.path.join(out_dir, "portal_outer.png"), box_frac=box, radius=18)
-            else:
-                punch_portal_mask(os.path.join(out_dir, "bg_alt.png"), os.path.join(out_dir, "portal_outer.png"), box_frac=(0.27, 0.18, 0.73, 0.82), radius=24)
-
-            if in_src and os.path.exists(in_src):
-                box_in = tuple(sl.get("inner_box", [0.18, 0.12, 0.82, 0.88]))
-                punch_portal_mask(in_src, os.path.join(out_dir, "portal_inner.png"), box_frac=box_in, radius=16)
-            else:
-                shutil.copyfile(os.path.join(out_dir, "portal_outer.png"), os.path.join(out_dir, "portal_inner.png"))
-
+            pbg_out = os.path.join(out_dir, "portal_bg.png")
             if bg_src and os.path.exists(bg_src):
-                cover_crop(Image.open(bg_src).convert("RGB"), 1920, 1080).save(os.path.join(out_dir, "portal_bg.png"), "PNG")
+                pbg_im = cover_crop(Image.open(bg_src).convert("RGB"), 1920, 1080)
+                apply_tonal_text_scrim(pbg_im, pbg_out, zone="left", strength=0.48)
             else:
-                shutil.copyfile(os.path.join(out_dir, "bg_base.png"), os.path.join(out_dir, "portal_bg.png"))
+                shutil.copyfile(os.path.join(out_dir, "bg_base.png"), pbg_out)
+
+            repo_portals = os.path.join(os.path.dirname(SCRIPT_DIR), "docs", "portals")
+            cdn_base = "https://raw.githubusercontent.com/7AK3SH1/morphdeck-3d/main/docs/portals"
+            local_out = rel(sl.get("portal_outer_image", ""))
+            local_in = rel(sl.get("portal_inner_image", ""))
+
+            def _resolve_portal_plate(local_custom: str, plate_filename: str, dst_path: str, fallback_fn) -> None:
+                if local_custom and os.path.exists(local_custom):
+                    if sl.get("portal_mode") == "photo_punch":
+                        punch_portal_mask(local_custom, dst_path, box_frac=(0.29, 0.23, 0.71, 0.59), radius=6)
+                    else:
+                        shutil.copyfile(local_custom, dst_path)
+                    return
+                bundled = os.path.join(repo_portals, plate_filename)
+                if os.path.exists(bundled):
+                    shutil.copyfile(bundled, dst_path)
+                    return
+                if bg_src:  # Online run (e.g. Agensi text bundle): pull studio RGBA portal plate from GitHub CDN
+                    try:
+                        from fetch_real_glb import _http_get
+                        raw_png = _http_get(f"{cdn_base}/{plate_filename}", timeout=30)
+                        if raw_png[:8] == b"\x89PNG\r\n\x1a\n":
+                            with open(dst_path, "wb") as fp:
+                                fp.write(raw_png)
+                            return
+                    except Exception:
+                        pass
+                fallback_fn(dst_path)
+
+            _resolve_portal_plate(
+                local_out,
+                "portal_exterior.png",
+                os.path.join(out_dir, "portal_outer.png"),
+                lambda dst: render_architectural_portal_exterior(
+                    pbg_out, dst, is_light=is_light, stone_hex=pal["surface"] if is_light else "#222630"
+                ),
+            )
+            _resolve_portal_plate(
+                local_in,
+                "portal_interior.png",
+                os.path.join(out_dir, "portal_inner.png"),
+                lambda dst: render_architectural_portal_interior(
+                    dst, is_light=is_light, wall_hex=pal["surface"] if is_light else "#1A1E28"
+                ),
+            )
             portal_done = True
 
         if st == "vertical_world_elevator":
             bg_src = _resolve_photo_field(sl, "panorama_image", "panorama_query", "panorama_url", out_dir, f"s{idx}_pano", rel) or sl.get("_bg_image", "")
             if bg_src and os.path.exists(bg_src):
-                cover_crop(Image.open(bg_src).convert("RGB"), 1920, 2160).save(os.path.join(out_dir, "elev_bg.png"), "PNG")
-                split_horizon_cutout(os.path.join(out_dir, "elev_bg.png"), os.path.join(out_dir, "elev_fg.png"), size=(1920, 2160))
+                pano_im = cover_crop(Image.open(bg_src).convert("RGB"), 1920, 2160)
+                pano_arr = np.asarray(pano_im, dtype=np.float32)
+                yy_p, xx_p = np.mgrid[0:2160, 0:1920].astype(np.float32)
+                yn_p = yy_p / 2160.0
+                xn_p = xx_p / 1920.0
+                # First compute clean sky/mountain horizon seam BEFORE applying lower-left text ND scrim
+                raw_pano_p = os.path.join(out_dir, "_elev_raw.png")
+                pano_im.save(raw_pano_p, "PNG")
+                split_horizon_cutout(raw_pano_p, os.path.join(out_dir, "elev_fg.png"), size=(1920, 2160))
+
+                # Darken lower-left slope on upper_sky stop (yn in 0.28..0.52, xn < 0.56) AND lower_ground stop
+                ul_scrim = (np.clip(1.0 - xn_p / 0.58, 0.0, 1.0) ** 1.3) * np.exp(-((yn_p - 0.41) ** 2) / 0.0085) * 0.58
+                low_scrim = 0.44 * np.clip((yn_p - 0.52) / 0.48, 0.0, 1.0)
+                darken = (1.0 - np.maximum(ul_scrim, low_scrim))[..., None]
+
+                Image.fromarray(np.clip(pano_arr * darken, 0, 255).astype(np.uint8), "RGB").save(os.path.join(out_dir, "elev_bg.png"), "PNG")
+                with Image.open(os.path.join(out_dir, "elev_fg.png")) as fg_im:
+                    fg_arr = np.asarray(fg_im, dtype=np.float32)
+                    fg_rgb = np.clip(fg_arr[..., :3] * darken, 0, 255).astype(np.uint8)
+                    Image.fromarray(np.dstack([fg_rgb, fg_arr[..., 3].astype(np.uint8)]), "RGBA").save(os.path.join(out_dir, "elev_fg.png"), "PNG")
 
         if st == "parchment_3d_split":
             low_src = sl.get("_lower_image") or sl.get("_bg_image") or ""
@@ -569,24 +628,41 @@ def prepare_all(spec_path: str, out_dir: str) -> dict:
             bg_src = sl.get("_bg_image", "")
             bg_dst = os.path.join(out_dir, f"s{idx}_bg.png")
             if bg_src and os.path.exists(bg_src):
-                cover_crop(Image.open(bg_src).convert("RGB"), 1920, 1080).save(bg_dst, "PNG")
+                shutil.copyfile(bg_src, bg_dst)
             else:
                 shutil.copyfile(os.path.join(out_dir, "bg_base.png"), bg_dst)
-            render_refracted_glass_dock(bg_dst, os.path.join(out_dir, f"s{idx}_dock_refract.png"), tint_rgba=(*surf_rgb, 146))
+            render_refracted_glass_dock(bg_dst, os.path.join(out_dir, f"s{idx}_dock_refract.png"), tint_rgba=(16, 20, 30, 118))
             if not dock_thumbs_done:
                 for di, it in enumerate(sl.get("dock", [])[:4], start=1):
                     tsrc = _resolve_photo_field(it, "image", "query", "url", out_dir, f"thumb_{di}", rel)
                     tdst = os.path.join(out_dir, f"thumb_{di}.png")
                     if tsrc and os.path.exists(tsrc):
-                        cover_crop(Image.open(tsrc).convert("RGB"), 180, 140).save(tdst, "PNG")
+                        cover_crop(Image.open(tsrc).convert("RGB"), 220, 148).save(tdst, "PNG")
                     else:
-                        _build_textured_canvas(180, 140, acc1 if di % 2 else acc2, seed=100 + di).save(tdst, "PNG")
+                        _build_textured_canvas(220, 148, acc1 if di % 2 else acc2, seed=100 + di).save(tdst, "PNG")
                 dock_thumbs_done = True
 
         if st == "picture_frame_pullback":
             hframe_dst = os.path.join(out_dir, f"s{idx}_hollow_frame.png")
             render_hollow_gold_frame(hframe_dst, frame_style=sl.get("frame_style", "ornate_gold"), border_px=84)
             sl["_hollow_frame"] = hframe_dst
+            # Use clean tourist-free parabolic spotlight gallery wall unless user explicitly forces photo_wall
+            local_wall = rel(sl.get("wall_image", ""))
+            if local_wall and os.path.exists(local_wall):
+                sl["_wall_image"] = apply_tonal_text_scrim(local_wall, os.path.join(out_dir, f"s{idx}_wall_clean.png"), zone="left", strength=0.55) and os.path.join(out_dir, f"s{idx}_wall_clean.png")
+            else:
+                fx = float(sl.get("frame_x", 508))
+                fy = float(sl.get("frame_y", 78))
+                fw = float(sl.get("frame_w", 340))
+                fh = float(sl.get("frame_h", 192))
+                wall_dst = os.path.join(out_dir, f"s{idx}_gallery_wall.png")
+                render_gallery_wall_room(
+                    wall_dst,
+                    wall_hex="#1D2028" if is_light else "#141720",
+                    spot_cx_frac=(fx + fw * 0.5) / 960.0,
+                    spot_cy_frac=(fy + fh * 0.5) / 540.0,
+                )
+                sl["_wall_image"] = wall_dst
             if sl.get("_framed_art_image"):
                 sl["_framed_art"] = sl["_framed_art_image"]
 
@@ -603,7 +679,7 @@ def prepare_all(spec_path: str, out_dir: str) -> dict:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Prepare real 3D .glb + photorealistic studio assets for morphdeck-3d v3.")
+    parser = argparse.ArgumentParser(description="Prepare real 3D .glb + museum-grade cinema assets for morphdeck-3d v4.")
     parser.add_argument("--spec", required=True)
     parser.add_argument("--out", required=True)
     args = parser.parse_args()

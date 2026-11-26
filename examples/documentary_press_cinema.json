@@ -91,13 +91,12 @@
       "type": "picture_frame_pullback",
       "overline": "GALLERY PERSPECTIVE  //  07",
       "headline": "True 4.4x Concentric Frame Pull-Back",
-      "subtitle": "The full poster scales straight into the open-aperture gold museum frame on the gallery wall.",
-      "wall_query": "Louvre gallery hall painting room",
+      "subtitle": "The full poster and live 3D optical hardware scale concentrically into a mitered gilt museum frame.",
       "frame_style": "ornate_gold",
-      "frame_x": 348,
-      "frame_y": 42,
-      "frame_w": 264,
-      "frame_h": 148,
+      "frame_x": 508,
+      "frame_y": 78,
+      "frame_w": 340,
+      "frame_h": 192,
       "cta": "ARCHIVE COMPLETE"
     }
   ]

@@ -2,12 +2,13 @@
 # Copyright 2026 7AK3SH1
 # Licensed under the Apache License, Version 2.0 (see LICENSE and NOTICE).
 """
-3-Point Colored Studio Lighting Injector (<am3d:model3d>) for morphdeck-3d.
+3-Point Colored Studio Lighting (<am3d:model3d>) & Optical Alpha-Dissolve (<a:alphaModFix>)
+Post-Processor for morphdeck-3d v4.0.0.
 
-Upgrades PowerPoint's default flat white <am3d:model3d> illumination with
-universe- and theme-calibrated <am3d:ambientLight> + 3 colored <am3d:ptLight>
-emitters (warm key light, accent fill light, and rim backlight) while strictly
-preserving OpenXML namespace prefixes (am3d:, a:, p:, mc:, p159:).
+1. Upgrades PowerPoint's flat white <am3d:model3d> illumination with universe/theme-calibrated
+   <am3d:ambientLight> + 3 colored <am3d:ptLight> emitters while preserving XML prefixes.
+2. Converts COM shapes tagged with descr="MORPH_ALPHA_ZERO" into true OpenXML
+   <a:alphaModFix amt="0"/> optical dissolves so zoomed outgoing portals fade seamlessly.
 """
 
 import argparse
@@ -18,7 +19,6 @@ import zipfile
 import xml.etree.ElementTree as ET
 
 LIGHT_RIGS = {
-    # v3 Visual Universes
     "documentary_press": {
         "ambient": (52000, 49000, 44000, 500000),
         "lights": [
@@ -67,7 +67,6 @@ LIGHT_RIGS = {
             (98000, 52000, 74000, 3900000, -37000000, 58000000, -35000000),
         ],
     },
-    # v2 Backward-Compatible Studio Themes
     "obsidian_kinetic": {
         "ambient": (45000, 48000, 55000, 480000),
         "lights": [
@@ -134,6 +133,7 @@ EXISTING_LIGHTS_RE = re.compile(
     r"<am3d:(?:ambientLight|ptLight|dirLight|spotLight|unknownLight)\b[^>]*(?:/>|>.*?</am3d:(?:ambientLight|ptLight|dirLight|spotLight|unknownLight)>)",
     re.DOTALL,
 )
+PIC_BLOCK_RE = re.compile(r"<p:pic\b.*?</p:pic>", re.DOTALL)
 
 
 def _build_lighting_xml(theme_or_universe: str) -> str:
@@ -152,8 +152,38 @@ def _build_lighting_xml(theme_or_universe: str) -> str:
     return "".join(parts)
 
 
+def _apply_alpha_zero_markers(xml_txt: str) -> str:
+    if "MORPH_ALPHA_ZERO" not in xml_txt:
+        return xml_txt
+
+    def _patch_pic(match: re.Match) -> str:
+        block = match.group(0)
+        if 'descr="MORPH_ALPHA_ZERO"' not in block:
+            return block
+        block = block.replace(' descr="MORPH_ALPHA_ZERO"', "")
+        if "alphaModFix" in block:
+            return block
+        # Upgrade self-closing <a:blip .../> or open <a:blip ...> to contain <a:alphaModFix amt="0"/>
+        block = re.sub(
+            r"<a:blip\b([^>]*?)/>",
+            r'<a:blip\1><a:alphaModFix amt="0"/></a:blip>',
+            block,
+            count=1,
+        )
+        if "alphaModFix" not in block:
+            block = re.sub(
+                r"(<a:blip\b[^>]*>)",
+                r'\1<a:alphaModFix amt="0"/>',
+                block,
+                count=1,
+            )
+        return block
+
+    return PIC_BLOCK_RE.sub(_patch_pic, xml_txt)
+
+
 def inject_3d_studio_lighting(pptx_path: str, theme: str = "commercial_studio", universe: str = "") -> int:
-    """Upgrade every <am3d:model3d> node in pptx_path with a 3-point colored studio lighting rig."""
+    """Upgrade <am3d:model3d> lighting rigs and apply MORPH_ALPHA_ZERO optical dissolves."""
     if not os.path.exists(pptx_path):
         raise FileNotFoundError(f"PPTX file not found: {pptx_path}")
 
@@ -179,10 +209,16 @@ def inject_3d_studio_lighting(pptx_path: str, theme: str = "commercial_studio", 
             data = zin.read(item.filename)
             if re.match(r"^ppt/slides/slide\d+\.xml$", item.filename):
                 txt = data.decode("utf-8")
+                changed = False
                 if "<am3d:model3d" in txt:
-                    new_txt = MODEL3D_BLOCK_RE.sub(_replace_model_lights, txt)
-                    ET.fromstring(new_txt)
-                    data = new_txt.encode("utf-8")
+                    txt = MODEL3D_BLOCK_RE.sub(_replace_model_lights, txt)
+                    changed = True
+                if "MORPH_ALPHA_ZERO" in txt:
+                    txt = _apply_alpha_zero_markers(txt)
+                    changed = True
+                if changed:
+                    ET.fromstring(txt)
+                    data = txt.encode("utf-8")
             zout.writestr(item, data)
 
     with open(pptx_path, "wb") as f:

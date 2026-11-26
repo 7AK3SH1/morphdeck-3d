@@ -268,8 +268,9 @@ def cmd_build(args: argparse.Namespace) -> None:
             rc = verify_pptx(
                 out_pptx,
                 export_dir if (use_com and not args.skip_export) else None,
-                require_3d=bool(resolved.get("resolved_glb") or resolved.get("meshes")),
+                require_3d=use_com and bool(resolved.get("resolved_glb") or resolved.get("meshes")),
                 require_lighting=use_com and bool(resolved.get("resolved_glb") or resolved.get("meshes")),
+                require_morph_pairs=is_v3,
             )
             if rc != 0:
                 sys.exit(rc)

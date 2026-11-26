@@ -5,7 +5,7 @@
 **Cinema-Morph & Photorealistic 3D PowerPoint Engineering Skill for AI Coding Agents**
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-3.0.0_Cinema_Morph-E11D48.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/Version-4.0.0_True_Morph-E11D48.svg)](CHANGELOG.md)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB.svg)](pyproject.toml)
 [![Universes](https://img.shields.io/badge/Visual_Universes-6_Distinct_Aesthetics-8B5CF6.svg)](#6-visual-universes)
 [![Morph Engines](https://img.shields.io/badge/Morph_Engines-17_Cinema_Transitions-EC4899.svg)](#17-cinema-morph-slide-engines)
@@ -18,17 +18,17 @@
 
 ---
 
-## Why MorphDeck 3D v3.0.0?
+## Why MorphDeck 3D v4.0.0?
 
-Most AI presentation tools produce identical SaaS templates, repetitive bullet boxes, or synthetic primitive 3D toys. **MorphDeck 3D v3.0.0** is an open-source Agent Skill and dual-engine OpenXML/COM pipeline engineered to craft **documentary, architectural, museum, sneaker-drop, and executive decks** using **native PowerPoint Morph choreography, real high-poly CC0 `.glb` 3D geometry, and genuine open-license photography**.
+Most AI presentation tools produce identical SaaS templates, clunky dark text boxes slapped over random stock photos, or broken static XML slides. **MorphDeck 3D v4.0.0** is an open-source Agent Skill and dual-engine OpenXML/COM pipeline engineered with **True-Morph pre/post-staging physics, `<a:alphaModFix>` optical portal dissolves, 2x-SSAA Z-buffered CC0 `.glb` 3D rendering, and juried Wikimedia Featured 4K photography**.
 
-| Capability | Generic AI Slide Generators | MorphDeck 3D v3.0.0 (`morphdeck-3d`) |
+| Capability | Generic AI Slide Generators | MorphDeck 3D v4.0.0 (`morphdeck-3d`) |
 | :--- | :--- | :--- |
-| **3D Visual Fidelity** | Flat stock icons or awkward boxy toys | **Real Khronos, Poly Haven photogrammetry & NASA CC0 `.glb` models** illuminated by calibrated **3-point colored `<am3d:ptLight>` studio rigs** |
-| **Cinema-Morph Motion** | Hard slide cuts or broken raw XML tags | **Broadsheet Newspaper Dives (`3.6x`)**, **Black-Curtain Rolling Odometer Reels**, **Diagonal Cloud Sweeps**, **4.4x Concentric Hollow-Frame Pull-Backs**, **Real Portal Fly-Throughs**, and **2-Stop Sky-Split Elevators** |
-| **Editorial Craft** | Rigid opaque rectangles everywhere | **Organic Liquid Ink Drips**, **Feathered Paper Clouds**, **Silhouette Horizons**, and **Gaussian Backdrop-Refracted Glass Docks** |
-| **Domain Adaptation** | Same slide structure reused across projects | **6 Visual Universes** + **17 Morph Slide Engines** auto-routed per topic & narrative arc |
-| **OS Support & QA** | Windows-only scripts or unchecked builds | **Windows PowerPoint COM** (live `.glb` + `1920x1080` lit export) AND **Cross-Platform Python OpenXML + NumPy PBR Renderer**, gated by `validate_spec.py` + `verify_deck.py` |
+| **3D Visual Fidelity** | Flat stock icons or faceted polygons | **Real Khronos, Poly Haven & NASA CC0 `.glb` models** with **3-point `<am3d:ptLight>` studio rigs** (COM) and **2x-SSAA Z-buffered smooth-Phong bilinear PBR rendering** (cross-platform) |
+| **True-Morph Physics** | Hard slide cuts or static cross-fades | **Unbroken pre/post-staged `!!` continuity on every slide pair**, **`<a:alphaModFix amt="0"/>` portal fly-through dissolves**, **pre-masked odometer reels**, and **live 3D concentric museum frame shrink** |
+| **Open-Canvas Craft** | Opaque gray boxes & tourist crowd photos | **Cantilevered infinity-pool pavilions**, **cloud-proof 1D DP sky splits**, **optical ND exposure scrims**, **deckle-edge vellum**, and **juried Wikimedia Featured photography** |
+| **Domain Adaptation** | Same slide structure reused across projects | **6 Visual Universes** + **17 True-Morph Slide Engines** auto-routed per topic & narrative arc |
+| **OS Support & QA** | Windows-only scripts or unchecked builds | **Windows PowerPoint COM** AND **Cross-Platform Python OpenXML** with identical True-Morph choreography, gated by `verify_deck.py --require-morph-pairs` |
 
 ---
 
