@@ -1,6 +1,6 @@
-# Cinema-Morph v4 Visual Universes & True-Morph Reference
+# Cinema-Morph v5 Visual Universes & True-Morph Reference
 
-Detailed contract for `morphdeck-3d` v4.0.0 (`schema_version: 3` & `4`).
+Detailed contract for `morphdeck-3d` v5.0.0 (`schema_version: 3`, `4`, and `5`).
 
 ## 1. Visual Universes (`universe`)
 

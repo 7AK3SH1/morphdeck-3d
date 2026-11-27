@@ -197,12 +197,14 @@ function Ensure-Model3D($slide, [string]$name, [string]$glbPath, [single]$x, [si
     if ($null -eq $m) {
         $m = $slide.Shapes.Add3DModel($glbPath, 0, 1, $x, $y, $w, $h)
         $m.Name = $name
-        $m.LockAspectRatio = -1
-        $m.Model3D.AutoFit = 0
+        $m.LockAspectRatio = 0
     } else {
+        $m.LockAspectRatio = 0
         $m.Left = $x; $m.Top = $y; $m.Width = $w; $m.Height = $h
     }
+    $m.Model3D.AutoFit = -1
     $m.Model3D.RotationX = $rx; $m.Model3D.RotationY = $ry; $m.Model3D.RotationZ = $rz
+    try { $m.Model3D.FieldOfView = [single]36 } catch {}
     $m.ZOrder(0)
     return $m
 }
@@ -210,22 +212,22 @@ function Ensure-Model3D($slide, [string]$name, [string]$glbPath, [single]$x, [si
 function Add-OdometerStrip($slide, [string]$name, [single]$x, [single]$y, [single]$w, [int]$txtBgr, [string]$font) {
     $tb = Find-Shape $slide $name
     if ($null -eq $tb) {
-        $tb = $slide.Shapes.AddTextbox(1, $x, $y, $w, [single]920)
+        $tb = $slide.Shapes.AddTextbox(1, $x, $y, $w, [single]1180)
         $tb.Name = $name
     } else {
-        $tb.Left = $x; $tb.Top = $y; $tb.Width = $w; $tb.Height = [single]920
+        $tb.Left = $x; $tb.Top = $y; $tb.Width = $w; $tb.Height = [single]1180
     }
     $tf = $tb.TextFrame2
     $tf.WordWrap = 0; $tf.AutoSize = 0; $tf.VerticalAnchor = 1
     $tf.MarginLeft = 0; $tf.MarginRight = 0; $tf.MarginTop = 0; $tf.MarginBottom = 0
     $tr = $tf.TextRange
     $tr.Text = "0`r1`r2`r3`r4`r5`r6`r7`r8`r9"
-    $tr.Font.Name = $font; $tr.Font.Size = [single]66; $tr.Font.Bold = -1
+    $tr.Font.Name = $font; $tr.Font.Size = [single]90; $tr.Font.Bold = -1
     $tr.Font.Fill.Solid(); $tr.Font.Fill.ForeColor.RGB = $txtBgr
     $pf = $tr.ParagraphFormat
     $pf.Alignment = 2
     $pf.LineRuleWithin = 0
-    $pf.SpaceWithin = [single]86
+    $pf.SpaceWithin = [single]112
     $pf.SpaceBefore = 0
     $pf.SpaceAfter = 0
     return $tb
@@ -242,6 +244,8 @@ $cAcc1     = HexToBgr $spec.palette.accent1 "#E11D48"
 $cAcc2     = HexToBgr $spec.palette.accent2 "#38BDF8"
 $cAcc3     = HexToBgr $spec.palette.accent3 "#F59E0B"
 $cWhite    = HexToBgr "#FFFFFF"
+$cSlate    = HexToBgr "#CBD5E1"
+$cGold     = HexToBgr "#FBBF24"
 $cObsidian = HexToBgr "#080A0F"
 
 $heroGlb = if ($spec.resolved_glb) { [string]$spec.resolved_glb } else { "" }
@@ -340,40 +344,47 @@ try {
                 $odoBg = if ($sl.bg_hex) { HexToBgr $sl.bg_hex } else { $cObsidian }
                 $curt = Add-Rect $s "!!odo_curtain" 0 0 960 540 $odoBg 0 -1 0 0; $curt.ZOrder(1)
 
-                $winY = [single]218; $stepH = [single]86
+                $winY = [single]204; $stepH = [single]112
                 $totW = 0
-                foreach ($ch in $chars) { $totW += if ($ch -eq ' ') { 24 } elseif ($ch -match '\d') { 50 } else { 32 } }
+                foreach ($ch in $chars) { $totW += if ($ch -eq ' ') { 28 } elseif ($ch -match '\d') { 64 } else { 32 } }
                 $curX = [single](480 - ($totW / 2))
 
                 for ($ci = 0; $ci -lt $chars.Count; $ci++) {
                     $ch = $chars[$ci]
-                    if ($ch -eq ' ') { $curX += 24; continue }
+                    if ($ch -eq ' ') { $curX += 28; continue }
                     if ($ch -match '\d') {
                         $d = [int][string]$ch
                         $yTarget = [single]($winY - ($d * $stepH))
-                        $st_sh = Add-OdometerStrip $s "!!odo_col_$ci" $curX $yTarget 50 $cWhite $HeadingFont
+                        $st_sh = Add-OdometerStrip $s "!!odo_col_$ci" $curX $yTarget 64 $cWhite $HeadingFont
                         $st_sh.ZOrder(0)
-                        $curX += 50
+                        $curX += 64
                     } else {
-                        $sep = Add-Text $s "odo_sep_$ci" ([string]$ch) $curX $winY 32 86 $HeadingFont 66 $true $cWhite 2 3
+                        $sep = Add-Text $s "odo_sep_$ci" ([string]$ch) $curX $winY 32 112 $HeadingFont 90 $true $cWhite 2 3
                         $sep.ZOrder(0)
                         $curX += 32
                     }
                 }
 
-                $mTop = Add-Rect $s "!!odo_mask_top" -4 -4 968 222 $odoBg 0 -1 0 0; $mTop.ZOrder(0)
-                $mBot = Add-Rect $s "!!odo_mask_bot" -4 304 968 242 $odoBg 0 -1 0 0; $mBot.ZOrder(0)
+                $mTopP = if (Test-Path "$AssetsDir\s$idx`_odo_mask_top.png") { "$AssetsDir\s$idx`_odo_mask_top.png" } elseif (Test-Path "$AssetsDir\odo_mask_top.png") { "$AssetsDir\odo_mask_top.png" } else { "" }
+                $mBotP = if (Test-Path "$AssetsDir\s$idx`_odo_mask_bot.png") { "$AssetsDir\s$idx`_odo_mask_bot.png" } elseif (Test-Path "$AssetsDir\odo_mask_bot.png") { "$AssetsDir\odo_mask_bot.png" } else { "" }
+                if ($mTopP -and $mBotP) {
+                    $mTop = Add-Pic $s "!!odo_mask_top" $mTopP -4 -4 968 224; $mTop.ZOrder(0)
+                    $mBot = Add-Pic $s "!!odo_mask_bot" $mBotP -4 304 968 240; $mBot.ZOrder(0)
+                } else {
+                    $mTop = Add-Rect $s "!!odo_mask_top" -4 -4 968 224 $odoBg 0 -1 0 0; $mTop.ZOrder(0)
+                    $mBot = Add-Rect $s "!!odo_mask_bot" -4 304 968 240 $odoBg 0 -1 0 0; $mBot.ZOrder(0)
+                }
 
                 $silPath = if ($sl._silhouette_cutout) { [string]$sl._silhouette_cutout } else { "$AssetsDir\odo_silhouette.png" }
                 $sil = Add-Pic $s "!!odo_sil" $silPath 0 378 960 162; $sil.ZOrder(0)
-                $ovr = Add-Text $s "!!odo_ovr" $sl.overline 120 146 720 32 $DisplayFont 20 $true $cAcc1 2 3; $ovr.ZOrder(0)
-                $sub = Add-Text $s "!!odo_sub" $sl.sublabel 120 322 720 34 $DisplayFont 22 $true $cWhite 2 3; $sub.ZOrder(0)
+                $ovr = Add-Text $s "!!odo_ovr" $sl.overline 120 128 720 32 $DisplayFont 20 $true $cAcc1 2 3; $ovr.ZOrder(0)
+                $sub = Add-Text $s "!!odo_sub" $sl.sublabel 120 326 720 34 $DisplayFont 22 $true $cWhite 2 3; $sub.ZOrder(0)
                 Set-Morph $s ([single]2.1)
             }
 
             "flyby_wipe" {
                 $keep = $carryBridge + @("!!flyby_obj", "!!flyby_cloud")
-                if ($heroGlb -and ($sl.use_hero_3d -ne $false)) { $keep += @("!!HeroShadow", "!!Hero3D") }
+                if ($heroGlb -and ($sl.use_hero_3d -eq $true)) { $keep += @("!!HeroShadow", "!!Hero3D") }
                 $s = Start-MorphSlide $pres $prevSlide $keep
                 $bgP = if ($sl._bg_image) { [string]$sl._bg_image } else { "$AssetsDir\bg_base.png" }
                 $bg = Add-Pic $s "!!StageBg" $bgP 0 0 960 540; $bg.ZOrder(1)
@@ -385,13 +396,14 @@ try {
                 }
 
                 $txtCol = if ($sl._bg_image) { $cWhite } else { $cInk }
-                Add-Text $s "!!fb_ovr" $sl.overline 56 56 480 20 $MonoFont 9.5 $true $cAcc1 1 3 | Out-Null
+                $ovrCol = if ($sl._bg_image) { $cWhite } else { $cAcc1 }
+                $fov = Add-Text $s "!!fb_ovr" $sl.overline 56 56 480 20 $MonoFont 9.5 $true $ovrCol 1 3; if ($sl._bg_image) { Add-TextShadow $fov }
                 $fh1 = Add-Text $s "!!fb_h1" $sl.headline 56 84 490 92 $DisplayFont 34 $true $txtCol 1 1; if ($sl._bg_image) { Add-TextShadow $fh1 }
-                Add-Text $s "!!fb_body" $sl.body 56 188 460 108 $BodyFont 13 $false $txtCol 1 1 | Out-Null
+                $fbb = Add-Text $s "!!fb_body" $sl.body 56 188 460 108 $BodyFont 13 $false $txtCol 1 1; if ($sl._bg_image) { Add-TextShadow $fbb }
 
-                if ($heroGlb -and ($sl.use_hero_3d -ne $false)) {
+                if ($heroGlb -and ($sl.use_hero_3d -eq $true)) {
                     $sh = Add-Pic $s "!!HeroShadow" "$AssetsDir\shadow_hero.png" 552 430 352 54; $sh.ZOrder(0)
-                    Ensure-Model3D $s "!!Hero3D" $heroGlb 560 92 336 360 12 -24 2 | Out-Null
+                    Ensure-Model3D $s "!!Hero3D" $heroGlb 534 114 388 336 12 -24 2 | Out-Null
                 }
                 Set-Morph $s ([single]1.8)
             }
@@ -433,14 +445,15 @@ try {
 
                 $band = Add-Rect $s "!!poster_band" 348 0 264 540 $cAcc1 0 -1 0 0; $band.ZOrder(0)
                 $gw = if ($sl.giant_word) { [string]$sl.giant_word } else { "2026" }
-                # Giant word cleanly in upper third; 3D hero below so zero collision!
-                $pw = Add-Text $s "!!poster_word" $gw 60 24 840 138 $HeadingFont 116 $true $cWhite 2 3; Add-TextShadow $pw; $pw.ZOrder(0)
+                $gwSz = if ($gw.Length -le 5) { [single]184 } else { [single]152 }
+                # Giant word layered behind 3D subject for unmistakable depth sandwich
+                $pw = Add-Text $s "!!poster_word" $gw 30 88 900 220 $HeadingFont $gwSz $true $cWhite 2 3; Add-TextShadow $pw; $pw.ZOrder(0)
 
                 if ($sl._hero_cutout) {
-                    $ph = Add-Pic $s "!!poster_hero" $sl._hero_cutout 284 152 392 368; $ph.ZOrder(0)
+                    $ph = Add-Pic $s "!!poster_hero" $sl._hero_cutout 262 166 436 352; $ph.ZOrder(0)
                 } elseif ($heroGlb -and ($sl.use_hero_3d -ne $false)) {
-                    $sh = Add-Pic $s "!!HeroShadow" "$AssetsDir\shadow_hero.png" 296 474 368 54; $sh.ZOrder(0)
-                    Ensure-Model3D $s "!!Hero3D" $heroGlb 296 152 368 364 12 -22 2 | Out-Null
+                    $sh = Add-Pic $s "!!HeroShadow" "$AssetsDir\shadow_hero.png" 276 476 408 54; $sh.ZOrder(0)
+                    Ensure-Model3D $s "!!Hero3D" $heroGlb 268 170 424 344 12 -22 2 | Out-Null
                 }
 
                 if ($nextType -eq "picture_frame_pullback" -and $nextSl._hollow_frame) {
@@ -476,20 +489,20 @@ try {
                 }
                 $pw = Find-Shape $s "!!poster_word"
                 if ($null -ne $pw) {
-                    $pw.Left = [single]($fx + $fw * 0.08); $pw.Top = [single]($fy + $fh * 0.04)
-                    $pw.Width = [single]($fw * 0.84); $pw.Height = [single]($fh * 0.28)
-                    $pw.TextFrame2.TextRange.Font.Size = [single]28
+                    $pw.Left = [single]($fx + $fw * 0.06); $pw.Top = [single]($fy + $fh * 0.18)
+                    $pw.Width = [single]($fw * 0.88); $pw.Height = [single]($fh * 0.42)
+                    $pw.TextFrame2.TextRange.Font.Size = [single]40
                     $pw.ZOrder(0)
                 }
                 $m3d = Find-Shape $s "!!Hero3D"
                 if ($null -ne $m3d) {
-                    $m3d.Left = [single]($fx + $fw * 0.29); $m3d.Top = [single]($fy + $fh * 0.30)
-                    $m3d.Width = [single]($fw * 0.42); $m3d.Height = [single]($fh * 0.66)
+                    $m3d.Left = [single]($fx + $fw * 0.23); $m3d.Top = [single]($fy + $fh * 0.28)
+                    $m3d.Width = [single]($fw * 0.54); $m3d.Height = [single]($fh * 0.64)
                     $m3d.ZOrder(0)
                 } elseif ($null -ne (Find-Shape $s "!!poster_hero")) {
                     $ph = Find-Shape $s "!!poster_hero"
-                    $ph.Left = [single]($fx + $fw * 0.28); $ph.Top = [single]($fy + $fh * 0.30)
-                    $ph.Width = [single]($fw * 0.44); $ph.Height = [single]($fh * 0.66); $ph.ZOrder(0)
+                    $ph.Left = [single]($fx + $fw * 0.23); $ph.Top = [single]($fy + $fh * 0.28)
+                    $ph.Width = [single]($fw * 0.54); $ph.Height = [single]($fh * 0.64); $ph.ZOrder(0)
                 }
 
                 if ($sl._hollow_frame) {
@@ -500,16 +513,16 @@ try {
                     $hf = Add-Pic $s "!!hollow_frame" $sl._hollow_frame $hfX $hfY $hfW $hfH; $hf.ZOrder(0)
                 }
 
-                # Frameless gallery wall placard typography on serene dark wall
-                Add-Text $s "!!pf_ovr" $sl.overline 62 148 380 20 $MonoFont 9.5 $true $cAcc1 1 3 | Out-Null
+                # Frameless gallery wall placard typography on serene dark wall with crisp legible slate subtitle
+                $pfo = Add-Text $s "!!pf_ovr" $sl.overline 62 148 380 20 $MonoFont 9.5 $true $cGold 1 3; Add-TextShadow $pfo
                 $pfh = Add-Text $s "!!pf_h1" $sl.headline 62 178 396 102 $DisplayFont 34 $true $cWhite 1 1; Add-TextShadow $pfh
-                Add-Text $s "!!pf_sub" $sl.subtitle 62 290 380 68 $BodyFont 13 $false $cMuted 1 1 | Out-Null
+                $pfs = Add-Text $s "!!pf_sub" $sl.subtitle 62 290 380 68 $BodyFont 13 $false $cSlate 1 1; Add-TextShadow $pfs
                 Set-Morph $s ([single]2.2)
             }
 
             "real_portal_flythrough" {
                 $stage = if ($sl.stage) { [string]$sl.stage } else { "exterior" }
-                $keep = $carryBridge + @("!!portal_bg", "!!portal_inner", "!!portal_outer", "!!pt_ext_title", "!!pt_int_title", "!!pt_int_body", "!!HeroShadow", "!!Hero3D")
+                $keep = $carryBridge + @("!!portal_bg", "!!portal_inner", "!!portal_outer", "!!pt_ext_title", "!!pt_int_title", "!!pt_int_body", "!!pt_hor_title", "!!pt_hor_body", "!!HeroShadow", "!!Hero3D")
                 $s = Start-MorphSlide $pres $prevSlide $keep
 
                 if ($stage -eq "interior") {
@@ -522,12 +535,16 @@ try {
                     $extT = Find-Shape $s "!!pt_ext_title"
                     if ($null -ne $extT) { $extT.Top = [single]640 }
 
-                    $ih1 = Add-Text $s "!!pt_int_title" $sl.headline 148 188 430 128 $DisplayFont 36 $true $cWhite 1 1; Add-TextShadow $ih1; $ih1.ZOrder(0)
-                    $ibd = Add-Text $s "!!pt_int_body" $sl.body 148 320 410 82 $BodyFont 13 $false $cWhite 1 1; Add-TextShadow $ibd; $ibd.ZOrder(0)
+                    $ih1 = Add-Text $s "!!pt_int_title" $sl.headline 116 174 440 132 $DisplayFont 36 $true $cWhite 1 1; Add-TextShadow $ih1; $ih1.ZOrder(0)
+                    $ibd = Add-Text $s "!!pt_int_body" $sl.body 116 314 420 90 $BodyFont 13 $false $cWhite 1 1; Add-TextShadow $ibd; $ibd.ZOrder(0)
 
+                    if ($nextType -eq "real_portal_flythrough") {
+                        Add-Text $s "!!pt_hor_title" $nextSl.headline -620 78 480 128 $DisplayFont 40 $true $cWhite 1 1 | Out-Null
+                        Add-Text $s "!!pt_hor_body" $nextSl.body -720 212 440 96 $BodyFont 13 $false $cWhite 1 1 | Out-Null
+                    }
                     if ($heroGlb -and ($sl.use_hero_3d -eq $true)) {
-                        $sh = Add-Pic $s "!!HeroShadow" "$AssetsDir\shadow_hero.png" 596 468 284 48; $sh.ZOrder(0)
-                        Ensure-Model3D $s "!!Hero3D" $heroGlb 600 188 276 312 10 -22 1 | Out-Null
+                        $sh = Add-Pic $s "!!HeroShadow" "$AssetsDir\shadow_hero.png" 580 468 310 48; $sh.ZOrder(0)
+                        Ensure-Model3D $s "!!Hero3D" $heroGlb 572 196 326 296 10 -22 1 | Out-Null
                     }
                     Set-Morph $s ([single]2.1)
                 } elseif ($stage -eq "horizon") {
@@ -535,17 +552,19 @@ try {
                     $pin = Add-Pic $s "!!portal_inner" "$AssetsDir\portal_inner.png" -1820 -820 4400 2480
                     $pin.AlternativeText = "MORPH_ALPHA_ZERO"
                     $pin.ZOrder(0)
-                    $ph1 = Add-Text $s "!!pt_int_title" $sl.headline 58 84 460 120 $DisplayFont 38 $true $cWhite 1 1; Add-TextShadow $ph1
-                    $pbd = Add-Text $s "!!pt_int_body" $sl.body 58 214 430 96 $BodyFont 13 $false $cWhite 1 1; Add-TextShadow $pbd
+                    $intT = Find-Shape $s "!!pt_int_title"; if ($null -ne $intT) { $intT.Top = [single]-280 }
+                    $intB = Find-Shape $s "!!pt_int_body"; if ($null -ne $intB) { $intB.Top = [single]-240 }
+                    $ph1 = Add-Text $s "!!pt_hor_title" $sl.headline 58 78 480 128 $DisplayFont 40 $true $cWhite 1 1; Add-TextShadow $ph1
+                    $pbd = Add-Text $s "!!pt_hor_body" $sl.body 58 212 440 96 $BodyFont 13 $false $cWhite 1 1; Add-TextShadow $pbd
                     Set-Morph $s ([single]2.0)
                 } else {
                     $pbg = Add-Pic $s "!!portal_bg" "$AssetsDir\portal_bg.png" 0 0 960 540; $pbg.ZOrder(1)
                     $pin = Add-Pic $s "!!portal_inner" "$AssetsDir\portal_inner.png" 270 124 420 196; $pin.ZOrder(0)
                     $pout = Add-Pic $s "!!portal_outer" "$AssetsDir\portal_outer.png" 0 0 960 540; $pout.ZOrder(0)
-                    $eh1 = Add-Text $s "!!pt_ext_title" $sl.headline 300 396 604 112 $DisplayFont 36 $true $cWhite 3 1; Add-TextShadow $eh1
+                    $eh1 = Add-Text $s "!!pt_ext_title" $sl.headline 290 388 614 118 $DisplayFont 38 $true $cWhite 3 1; Add-TextShadow $eh1
                     if ($nextType -eq "real_portal_flythrough") {
-                        Add-Text $s "!!pt_int_title" $nextSl.headline -560 188 430 128 $DisplayFont 36 $true $cWhite 1 1 | Out-Null
-                        Add-Text $s "!!pt_int_body" $nextSl.body -680 320 410 82 $BodyFont 13 $false $cWhite 1 1 | Out-Null
+                        Add-Text $s "!!pt_int_title" $nextSl.headline -560 174 440 132 $DisplayFont 36 $true $cWhite 1 1 | Out-Null
+                        Add-Text $s "!!pt_int_body" $nextSl.body -680 314 420 90 $BodyFont 13 $false $cWhite 1 1 | Out-Null
                     }
                     Set-Morph $s ([single]2.0)
                 }
@@ -553,8 +572,16 @@ try {
 
             "refracted_spotlight_dock" {
                 $dockIdx = if ($null -ne $sl.dock_index) { [int]$sl.dock_index } else { 0 }
-                $dockXs = @(66, 282, 498, 714); $gliderXs = @(54, 270, 486, 702)
-                $keep = $carryBridge + @("!!GlassDock", "!!DockGlider", "!!DockThumb1", "!!DockThumb2", "!!DockThumb3", "!!DockThumb4", "!!sp_ring_0", "!!sp_ring_1", "!!sp_ring_2")
+                $dockItems = @($sl.dock)
+                $nDock = if ($dockItems.Count -le 3) { 3 } else { 4 }
+                if ($nDock -eq 3) {
+                    $dockXs = @(62, 342, 622); $gliderXs = @(46, 326, 606); $gliderW = [single]286
+                    $thumbW = [single]92; $thumbH = [single]52; $txtOff = [single]104; $txtW = [single]154; $lineW = [single]254
+                } else {
+                    $dockXs = @(64, 280, 496, 712); $gliderXs = @(50, 266, 482, 698); $gliderW = [single]212
+                    $thumbW = [single]76; $thumbH = [single]44; $txtOff = [single]86; $txtW = [single]114; $lineW = [single]196
+                }
+                $keep = $carryBridge + @("!!GlassDock", "!!DockGlider", "!!DockThumb1", "!!DockThumb2", "!!DockThumb3", "!!DockThumb4", "!!DockLine1", "!!DockLine2", "!!DockLine3", "!!DockLine4", "!!sp_ring_0", "!!sp_ring_1", "!!sp_ring_2")
                 if ($sl.use_hero_3d -eq $true) { $keep += @("!!HeroShadow", "!!Hero3D") }
                 if ($prevType -eq "refracted_spotlight_dock") {
                     $prevIdx = $idx - 1
@@ -575,37 +602,38 @@ try {
                     try { $nbg.PictureFormat.CropTop = [single](-360); $nbg.PictureFormat.CropBottom = [single]360; $nbg.Left = 0; $nbg.Top = 0; $nbg.Width = 960; $nbg.Height = 540 } catch {}
                     $nbg.ZOrder(1)
                     $nxSp = $nextSl.spotlight
-                    Add-Text $s "!!sp_tag_$nextIdx" $nxSp.tag -460 48 520 20 $MonoFont 9.5 $true $cAcc3 1 3 | Out-Null
+                    Add-Text $s "!!sp_tag_$nextIdx" $nxSp.tag -460 48 520 20 $MonoFont 9.5 $true $cGold 1 3 | Out-Null
                     Add-Text $s "!!sp_title_$nextIdx" $nxSp.title -580 74 540 88 $DisplayFont 36 $true $cWhite 1 1 | Out-Null
-                    Add-Text $s "!!sp_sub_$nextIdx" $nxSp.subtitle -700 168 520 26 $SemiFont 13 $false $cWhite 1 3 | Out-Null
+                    Add-Text $s "!!sp_sub_$nextIdx" $nxSp.subtitle -700 168 520 26 $SemiFont 13 $false $cSlate 1 3 | Out-Null
                     Add-Text $s "!!sp_body_$nextIdx" $nxSp.body -820 202 490 104 $BodyFont 13 $false $cWhite 1 1 | Out-Null
                 }
 
                 $sp = $sl.spotlight
-                Add-Text $s "!!sp_tag_$idx" $sp.tag 56 48 520 20 $MonoFont 9.5 $true $cAcc3 1 3 | Out-Null
+                $sptag = Add-Text $s "!!sp_tag_$idx" $sp.tag 56 48 520 20 $MonoFont 9.5 $true $cGold 1 3; Add-TextShadow $sptag
                 $spt = Add-Text $s "!!sp_title_$idx" $sp.title 56 74 540 88 $DisplayFont 36 $true $cWhite 1 1; Add-TextShadow $spt
-                Add-Text $s "!!sp_sub_$idx" $sp.subtitle 56 168 520 26 $SemiFont 13 $false $cWhite 1 3 | Out-Null
+                $sps = Add-Text $s "!!sp_sub_$idx" $sp.subtitle 56 168 520 26 $SemiFont 13 $false $cSlate 1 3; Add-TextShadow $sps
                 $spb = Add-Text $s "!!sp_body_$idx" $sp.body 56 202 490 104 $BodyFont 13 $false $cWhite 1 1; Add-TextShadow $spb
 
                 if ($heroGlb -and ($sl.use_hero_3d -eq $true)) {
-                    $sh = Add-Pic $s "!!HeroShadow" "$AssetsDir\shadow_hero.png" 644 304 268 46; $sh.ZOrder(0)
-                    Ensure-Model3D $s "!!Hero3D" $heroGlb 648 48 248 272 10 -20 2 | Out-Null
+                    $sh = Add-Pic $s "!!HeroShadow" "$AssetsDir\shadow_hero.png" 626 306 292 46; $sh.ZOrder(0)
+                    Ensure-Model3D $s "!!Hero3D" $heroGlb 624 58 296 254 10 -20 2 | Out-Null
                 }
 
                 $refractDock = "$AssetsDir\s$idx`_dock_refract.png"
                 $dockPath = if (Test-Path $refractDock) { $refractDock } else { "$AssetsDir\dock_bg.png" }
                 $gd = Find-Shape $s "!!GlassDock"
                 if ($null -ne $gd -and $prevType -eq "refracted_spotlight_dock") { $gd.Delete() }
-                $gdk = Add-Pic $s "!!GlassDock" $dockPath 40 386 880 128; $gdk.ZOrder(0)
-                $gld = Add-Pic $s "!!DockGlider" "$AssetsDir\dock_glider.png" $gliderXs[[Math]::Min(3, [Math]::Max(0, $dockIdx))] 396 208 108; $gld.ZOrder(0)
+                $gdk = Add-Pic $s "!!GlassDock" $dockPath 40 386 880 136; $gdk.ZOrder(0)
+                $gld = Add-Pic $s "!!DockGlider" "$AssetsDir\dock_glider.png" $gliderXs[[Math]::Min($nDock - 1, [Math]::Max(0, $dockIdx))] 388 $gliderW 132; $gld.ZOrder(0)
 
-                $dockItems = @($sl.dock)
-                for ($di = 0; $di -lt 4; $di++) {
+                for ($di = 0; $di -lt $nDock; $di++) {
                     $it = if ($di -lt $dockItems.Count) { $dockItems[$di] } else { @{ title = "Item $($di+1)"; subtitle = "" } }
                     $dn = $di + 1; $dx = $dockXs[$di]
-                    $th = Add-Pic $s "!!DockThumb$dn" "$AssetsDir\thumb_$dn.png" $dx 416 76 60; if ($th) { $th.ZOrder(0) }
-                    $tl = Add-Text $s "!!DockLbl$dn" $it.title ($dx + 84) 418 112 24 $DisplayFont 13 $true $cWhite 1 3; $tl.ZOrder(0)
-                    $ts = Add-Text $s "!!DockSub$dn" $it.subtitle ($dx + 84) 444 112 24 $BodyFont 10.5 $false $cWhite 1 1; $ts.ZOrder(0)
+                    $th = Add-Pic $s "!!DockThumb$dn" "$AssetsDir\thumb_$dn.png" $dx 416 $thumbW $thumbH; if ($th) { $th.ZOrder(0) }
+                    $tl = Add-Text $s "!!DockLbl$dn" $it.title ($dx + $txtOff) 416 $txtW 24 $DisplayFont 13.5 $true $cWhite 1 3; Add-TextShadow $tl; $tl.ZOrder(0)
+                    $ts = Add-Text $s "!!DockSub$dn" $it.subtitle ($dx + $txtOff) 442 $txtW 26 $BodyFont 10.5 $false $cSlate 1 1; Add-TextShadow $ts; $ts.ZOrder(0)
+                    $dlTrans = if ($di -eq ($dockIdx % $nDock)) { [single]0.08 } else { [single]0.52 }
+                    $dl = Add-Rect $s "!!DockLine$dn" $dx 484 $lineW ([single]1.2) $cWhite $dlTrans -1 0 0; $dl.ZOrder(0)
                 }
                 for ($pi = 0; $pi -lt 3; $pi++) {
                     $isAct = ($pi -eq ($dockIdx % 3))
@@ -646,50 +674,72 @@ try {
             "vertical_world_elevator" {
                 $stop = if ($sl.elevator_stop) { [string]$sl.elevator_stop } else { "upper_sky" }
                 $gwTxt = if ($sl.giant_word) { [string]$sl.giant_word } else { "HORIZON" }
+                $showHero = ($heroGlb -and ($sl.use_hero_3d -eq $true))
                 $keep = $carryBridge + @("!!elev_bg", "!!elev_word", "!!elev_fg", "!!ev_up_h1", "!!ev_rcard_0", "!!ev_rcard_1", "!!ev_rcard_2", "!!HeroShadow", "!!Hero3D")
                 $s = Start-MorphSlide $pres $prevSlide $keep
                 $ebgP = if (Test-Path "$AssetsDir\elev_bg.png") { "$AssetsDir\elev_bg.png" } else { "$AssetsDir\bg_base.png" }
 
                 if ($stop -eq "lower_ground") {
                     $ebg = Add-Pic $s "!!elev_bg" $ebgP 0 -520 960 1080; $ebg.ZOrder(1)
-                    $ew = Add-Text $s "!!elev_word" $gwTxt 40 286 880 170 $HeadingFont 128 $true $cWhite 2 3; Add-TextShadow $ew; $ew.ZOrder(0)
+                    $wordY = if ($showHero) { [single]286 } else { [single]118 }
+                    $ew = Add-Text $s "!!elev_word" $gwTxt 40 $wordY 880 170 $HeadingFont 128 $true $cWhite 2 3; Add-TextShadow $ew; $ew.ZOrder(0)
                     if (Test-Path "$AssetsDir\elev_fg.png") { $efg = Add-Pic $s "!!elev_fg" "$AssetsDir\elev_fg.png" 0 -520 960 1080; $efg.ZOrder(0) }
                     $upH = Find-Shape $s "!!ev_up_h1"; if ($null -ne $upH) { $upH.Top = [single]-260 }
 
-                    if ($heroGlb) {
-                        $sh = Add-Pic $s "!!HeroShadow" "$AssetsDir\shadow_hero.png" 54 456 336 56; $sh.ZOrder(0)
-                        Ensure-Model3D $s "!!Hero3D" $heroGlb 58 112 328 368 14 26 -2 | Out-Null
-                    }
-                    $eh2 = Add-Text $s "!!ev_h2" $sl.headline 444 52 468 64 $DisplayFont 26 $true $cWhite 1 1; Add-TextShadow $eh2
                     $cards = @($sl.cards)
-                    for ($ci = 0; $ci -lt [Math]::Min(3, $cards.Count); $ci++) {
-                        $cy = [single](142 + $ci * 118); $crd = $cards[$ci]
-                        $rc = Add-Pic $s "!!ev_rcard_$ci" "$AssetsDir\card_spec_$($ci + 1).png" 444 $cy 468 102; $rc.ZOrder(0)
-                        Add-Text $s "ev_rmet_$ci" $crd.value 464 ($cy + 16) 124 66 $DisplayFont 28 $true $cAcc1 2 3 | Out-Null
-                        Add-Text $s "ev_rttl_$ci" $crd.title 596 ($cy + 16) 294 26 $DisplayFont 14 $true $cInk 1 3 | Out-Null
-                        Add-Text $s "ev_rdsc_$ci" $crd.desc 596 ($cy + 44) 294 44 $BodyFont 11 $false $cMuted 1 1 | Out-Null
+                    if ($showHero) {
+                        $sh = Add-Pic $s "!!HeroShadow" "$AssetsDir\shadow_hero.png" 48 456 348 56; $sh.ZOrder(0)
+                        Ensure-Model3D $s "!!Hero3D" $heroGlb 44 140 356 328 14 26 -2 | Out-Null
+                        $eh2 = Add-Text $s "!!ev_h2" $sl.headline 444 52 468 64 $DisplayFont 26 $true $cWhite 1 1; Add-TextShadow $eh2
+                        for ($ci = 0; $ci -lt [Math]::Min(3, $cards.Count); $ci++) {
+                            $cy = [single](142 + $ci * 118); $crd = $cards[$ci]
+                            $rcP = if (Test-Path "$AssetsDir\elev_rcard_$($ci + 1).png") { "$AssetsDir\elev_rcard_$($ci + 1).png" } else { "$AssetsDir\card_spec_$($ci + 1).png" }
+                            $rc = Add-Pic $s "!!ev_rcard_$ci" $rcP 444 $cy 468 102; $rc.ZOrder(0)
+                            $rv = Add-Text $s "ev_rmet_$ci" $crd.value 464 ($cy + 16) 124 66 $DisplayFont 28 $true $cGold 2 3; Add-TextShadow $rv
+                            $rt = Add-Text $s "ev_rttl_$ci" $crd.title 596 ($cy + 16) 294 26 $DisplayFont 14 $true $cWhite 1 3; Add-TextShadow $rt
+                            Add-Text $s "ev_rdsc_$ci" $crd.desc 596 ($cy + 44) 294 44 $BodyFont 11 $false $cSlate 1 1 | Out-Null
+                        }
+                    } else {
+                        $oldH = Find-Shape $s "!!Hero3D"; if ($null -ne $oldH) { $oldH.Delete() }
+                        $oldS = Find-Shape $s "!!HeroShadow"; if ($null -ne $oldS) { $oldS.Delete() }
+                        $eh2 = Add-Text $s "!!ev_h2" $sl.headline 56 36 520 64 $DisplayFont 26 $true $cWhite 1 1; Add-TextShadow $eh2
+                        for ($ci = 0; $ci -lt [Math]::Min(3, $cards.Count); $ci++) {
+                            $cxC = [single](48 + $ci * 298); $cyC = [single]348; $crd = $cards[$ci]
+                            $rcP = if (Test-Path "$AssetsDir\elev_rcard_h_$($ci + 1).png") { "$AssetsDir\elev_rcard_h_$($ci + 1).png" } else { "$AssetsDir\card_spec_$($ci + 1).png" }
+                            $rc = Add-Pic $s "!!ev_rcard_$ci" $rcP $cxC $cyC 268 140; $rc.ZOrder(0)
+                            $rv = Add-Text $s "ev_rmet_$ci" $crd.value ($cxC + 18) ($cyC + 14) 232 42 $DisplayFont 28 $true $cGold 1 3; Add-TextShadow $rv
+                            $rt = Add-Text $s "ev_rttl_$ci" $crd.title ($cxC + 18) ($cyC + 58) 232 24 $DisplayFont 13.5 $true $cWhite 1 3; Add-TextShadow $rt
+                            Add-Text $s "ev_rdsc_$ci" $crd.desc ($cxC + 18) ($cyC + 86) 232 42 $BodyFont 10.5 $false $cSlate 1 1 | Out-Null
+                        }
                     }
                     Set-Morph $s ([single]2.2)
                 } else {
-                    # Delete any mid-air Hero3D on upper_sky unless next slide needs it off-canvas
-                    $oldH = Find-Shape $s "!!Hero3D"; if ($null -ne $oldH -and $nextType -ne "vertical_world_elevator") { $oldH.Delete() }
+                    # Delete any mid-air Hero3D on upper_sky unless next slide explicitly wants it off-canvas
+                    $nextShowHero = ($heroGlb -and ($null -ne $nextSl) -and ($nextSl.use_hero_3d -eq $true))
+                    $oldH = Find-Shape $s "!!Hero3D"; if ($null -ne $oldH -and ($nextType -ne "vertical_world_elevator" -or -not $nextShowHero)) { $oldH.Delete() }
                     $oldS = Find-Shape $s "!!HeroShadow"; if ($null -ne $oldS) { $oldS.Delete() }
 
                     $ebg = Add-Pic $s "!!elev_bg" $ebgP 0 0 960 1080; $ebg.ZOrder(1)
                     $ew = Add-Text $s "!!elev_word" $gwTxt 40 68 880 168 $HeadingFont 132 $true $cWhite 2 3; Add-TextShadow $ew; $ew.ZOrder(0)
                     if (Test-Path "$AssetsDir\elev_fg.png") { $efg = Add-Pic $s "!!elev_fg" "$AssetsDir\elev_fg.png" 0 0 960 1080; $efg.ZOrder(0) }
 
-                    # Frameless white editorial copy directly over dark mountain slope (zero card_panel!)
-                    Add-Text $s "!!ev_up_ovr" $sl.overline 56 334 420 20 $MonoFont 9.5 $true $cWhite 1 3 | Out-Null
+                    # Frameless white editorial copy directly over dark mountain slope
+                    $euo = Add-Text $s "!!ev_up_ovr" $sl.overline 56 334 420 20 $MonoFont 9.5 $true $cGold 1 3; Add-TextShadow $euo
                     $euh = Add-Text $s "!!ev_up_h1" $sl.headline 56 358 460 72 $DisplayFont 30 $true $cWhite 1 1; Add-TextShadow $euh
                     $eub = Add-Text $s "!!ev_up_body" $sl.body 56 434 440 68 $BodyFont 12.5 $false $cWhite 1 1; Add-TextShadow $eub
 
                     if ($nextType -eq "vertical_world_elevator") {
                         for ($ci = 0; $ci -lt 3; $ci++) {
-                            Add-Pic $s "!!ev_rcard_$ci" "$AssetsDir\card_spec_$($ci + 1).png" (1060 + $ci * 160) (142 + $ci * 118) 468 102 | Out-Null
+                            if ($nextShowHero) {
+                                $rcN = if (Test-Path "$AssetsDir\elev_rcard_$($ci + 1).png") { "$AssetsDir\elev_rcard_$($ci + 1).png" } else { "$AssetsDir\card_spec_$($ci + 1).png" }
+                                Add-Pic $s "!!ev_rcard_$ci" $rcN (1060 + $ci * 160) (142 + $ci * 118) 468 102 | Out-Null
+                            } else {
+                                $rcN = if (Test-Path "$AssetsDir\elev_rcard_h_$($ci + 1).png") { "$AssetsDir\elev_rcard_h_$($ci + 1).png" } else { "$AssetsDir\card_spec_$($ci + 1).png" }
+                                Add-Pic $s "!!ev_rcard_$ci" $rcN (48 + $ci * 298) (640 + $ci * 80) 268 140 | Out-Null
+                            }
                         }
-                        if ($heroGlb) {
-                            Ensure-Model3D $s "!!Hero3D" $heroGlb -380 140 328 368 10 -18 2 | Out-Null
+                        if ($nextShowHero) {
+                            Ensure-Model3D $s "!!Hero3D" $heroGlb -380 140 356 328 10 -18 2 | Out-Null
                         }
                     }
                     Set-Morph $s ([single]2.1)
@@ -705,8 +755,8 @@ try {
                 Add-Text $s "!!md_ovr" $sl.overline 48 26 520 18 $MonoFont 9.5 $true $cAcc1 1 3 | Out-Null
                 Add-Text $s "!!md_h1" $sl.headline 48 48 470 74 $DisplayFont 26 $true $cInk 1 1 | Out-Null
                 if ($heroGlb) {
-                    $sh = Add-Pic $s "!!HeroShadow" "$AssetsDir\shadow_hero.png" 496 434 404 62; $sh.ZOrder(0)
-                    Ensure-Model3D $s "!!Hero3D" $heroGlb 498 58 392 392 18 -34 -4 | Out-Null
+                    $sh = Add-Pic $s "!!HeroShadow" "$AssetsDir\shadow_hero.png" 488 426 418 58; $sh.ZOrder(0)
+                    Ensure-Model3D $s "!!Hero3D" $heroGlb 484 72 426 360 18 -34 -4 | Out-Null
                 }
                 $callouts = @($sl.callouts); $cCols = @($cAcc1, $cAcc2, $cAcc3)
                 for ($ci = 0; $ci -lt [Math]::Min(3, $callouts.Count); $ci++) {
@@ -735,8 +785,8 @@ try {
                 Add-Text $s "kb_hdsc" $hero.desc 280 158 334 62 $BodyFont 11.5 $false $cMuted 1 1 | Out-Null
 
                 if ($heroGlb) {
-                    $sh = Add-Pic $s "!!HeroShadow" "$AssetsDir\shadow_hero.png" 654 236 256 42; $sh.ZOrder(0)
-                    Ensure-Model3D $s "!!Hero3D" $heroGlb 668 42 232 214 14 -28 3 | Out-Null
+                    $sh = Add-Pic $s "!!HeroShadow" "$AssetsDir\shadow_hero.png" 656 240 254 42; $sh.ZOrder(0)
+                    Ensure-Model3D $s "!!Hero3D" $heroGlb 650 44 266 218 14 -28 3 | Out-Null
                 }
 
                 $tiles = @($sl.tiles); $bCols = @($cAcc1, $cAcc2, $cAcc3)
@@ -772,8 +822,8 @@ try {
                 }
                 if ($heroGlb) {
                     $rotYs = @(22, -24, 38, -16)
-                    $sh = Add-Pic $s "!!HeroShadow" "$AssetsDir\shadow_hero.png" 34 448 272 50; $sh.ZOrder(0)
-                    Ensure-Model3D $s "!!Hero3D" $heroGlb 46 192 250 274 12 ([single]$rotYs[$actIdx % 4]) 2 | Out-Null
+                    $sh = Add-Pic $s "!!HeroShadow" "$AssetsDir\shadow_hero.png" 32 434 264 48; $sh.ZOrder(0)
+                    Ensure-Model3D $s "!!Hero3D" $heroGlb 28 208 272 240 12 ([single]$rotYs[$actIdx % 4]) 2 | Out-Null
                 }
                 $cur = $stages[$actIdx]
                 $drw = Add-Pic $s "!!tl_drawer" "$AssetsDir\card_panel.png" 316 204 596 292; $drw.ZOrder(0)
@@ -792,8 +842,8 @@ try {
                 Add-Text $s "!!ch_h1" $sl.headline 46 46 600 54 $DisplayFont 25 $true $cInk 1 1 | Out-Null
                 $chi = Add-Pic $s "!!ch_img" "$AssetsDir\s$idx`_chart.png" 46 110 584 384; $chi.ZOrder(0)
                 if ($heroGlb) {
-                    $sh = Add-Pic $s "!!HeroShadow" "$AssetsDir\shadow_hero.png" 656 244 248 44; $sh.ZOrder(0)
-                    Ensure-Model3D $s "!!Hero3D" $heroGlb 672 38 220 222 16 28 -2 | Out-Null
+                    $sh = Add-Pic $s "!!HeroShadow" "$AssetsDir\shadow_hero.png" 656 242 250 44; $sh.ZOrder(0)
+                    Ensure-Model3D $s "!!Hero3D" $heroGlb 650 38 262 222 16 28 -2 | Out-Null
                 }
                 $hl = $sl.highlight
                 $hlb = Add-Pic $s "!!ch_hlbg" "$AssetsDir\card_spec_1.png" 648 278 268 104; $hlb.ZOrder(0)
@@ -810,8 +860,8 @@ try {
                 Add-Text $s "!!ar_h1" $sl.headline 42 46 630 52 $DisplayFont 24 $true $cInk 1 1 | Out-Null
                 $ari = Add-Pic $s "!!ar_img" "$AssetsDir\s$idx`_arch.png" 42 104 624 398; $ari.ZOrder(0)
                 if ($heroGlb) {
-                    $sh = Add-Pic $s "!!HeroShadow" "$AssetsDir\shadow_hero.png" 686 244 236 42; $sh.ZOrder(0)
-                    Ensure-Model3D $s "!!Hero3D" $heroGlb 698 36 212 222 22 -34 -3 | Out-Null
+                    $sh = Add-Pic $s "!!HeroShadow" "$AssetsDir\shadow_hero.png" 690 238 224 40; $sh.ZOrder(0)
+                    Ensure-Model3D $s "!!Hero3D" $heroGlb 686 36 232 216 22 -34 -3 | Out-Null
                 }
                 $pillars = @($sl.pillars)
                 for ($pi = 0; $pi -lt [Math]::Min(2, $pillars.Count); $pi++) {
@@ -843,8 +893,8 @@ try {
                     Add-Text $s "!!fs_ml_$mi" $metrics[$mi].label $mx 398 142 22 $MonoFont 9 $false $mutCol 1 1 | Out-Null
                 }
                 if ($heroGlb) {
-                    $sh = Add-Pic $s "!!HeroShadow" "$AssetsDir\shadow_hero.png" 536 430 352 56; $sh.ZOrder(0)
-                    Ensure-Model3D $s "!!Hero3D" $heroGlb 548 72 336 368 10 -20 1 | Out-Null
+                    $sh = Add-Pic $s "!!HeroShadow" "$AssetsDir\shadow_hero.png" 510 432 388 56; $sh.ZOrder(0)
+                    Ensure-Model3D $s "!!Hero3D" $heroGlb 498 92 412 352 10 -20 1 | Out-Null
                 }
                 Set-Morph $s ([single]2.0)
             }
@@ -877,18 +927,25 @@ try {
                 $nextBg = if ($nextSl.bg_hex) { HexToBgr $nextSl.bg_hex } else { $cObsidian }
                 Add-Rect $s "!!odo_curtain" -980 0 960 540 $nextBg 0 -1 0 0 | Out-Null
                 $nextChars = ([string]$nextSl.target_value).ToCharArray()
-                $totW = 0; foreach ($ch in $nextChars) { $totW += if ($ch -eq ' ') { 24 } elseif ($ch -match '\d') { 50 } else { 32 } }
+                $totW = 0; foreach ($ch in $nextChars) { $totW += if ($ch -eq ' ') { 28 } elseif ($ch -match '\d') { 64 } else { 32 } }
                 $cx = [single](-980 + (480 - ($totW / 2)))
                 for ($ci = 0; $ci -lt $nextChars.Count; $ci++) {
                     $ch = $nextChars[$ci]
-                    if ($ch -eq ' ') { $cx += 24; continue }
+                    if ($ch -eq ' ') { $cx += 28; continue }
                     if ($ch -match '\d') {
-                        Add-OdometerStrip $s "!!odo_col_$ci" $cx ([single](218 + (($ci % 3) - 9) * 86)) 50 $cWhite $HeadingFont | Out-Null
-                        $cx += 50
+                        Add-OdometerStrip $s "!!odo_col_$ci" $cx ([single](204 + (($ci % 3) - 9) * 112)) 64 $cWhite $HeadingFont | Out-Null
+                        $cx += 64
                     } else { $cx += 32 }
                 }
-                Add-Rect $s "!!odo_mask_top" -984 -4 968 222 $nextBg 0 -1 0 0 | Out-Null
-                Add-Rect $s "!!odo_mask_bot" -984 304 968 242 $nextBg 0 -1 0 0 | Out-Null
+                $mTopN = if (Test-Path "$AssetsDir\s$($idx + 1)_odo_mask_top.png") { "$AssetsDir\s$($idx + 1)_odo_mask_top.png" } elseif (Test-Path "$AssetsDir\odo_mask_top.png") { "$AssetsDir\odo_mask_top.png" } else { "" }
+                $mBotN = if (Test-Path "$AssetsDir\s$($idx + 1)_odo_mask_bot.png") { "$AssetsDir\s$($idx + 1)_odo_mask_bot.png" } elseif (Test-Path "$AssetsDir\odo_mask_bot.png") { "$AssetsDir\odo_mask_bot.png" } else { "" }
+                if ($mTopN -and $mBotN) {
+                    Add-Pic $s "!!odo_mask_top" $mTopN -984 -4 968 224 | Out-Null
+                    Add-Pic $s "!!odo_mask_bot" $mBotN -984 304 968 240 | Out-Null
+                } else {
+                    Add-Rect $s "!!odo_mask_top" -984 -4 968 224 $nextBg 0 -1 0 0 | Out-Null
+                    Add-Rect $s "!!odo_mask_bot" -984 304 968 240 $nextBg 0 -1 0 0 | Out-Null
+                }
                 Add-Pic $s "!!odo_sil" "$AssetsDir\odo_silhouette.png" -980 378 960 162 | Out-Null
             } elseif ($nextType -eq "flyby_wipe") {
                 Add-Pic $s "!!flyby_cloud" "$AssetsDir\flyby_cloud.png" -860 320 760 440 | Out-Null
@@ -896,8 +953,8 @@ try {
                     $foPre = Add-Pic $s "!!flyby_obj" $nextSl._flyby_cutout -480 400 440 280
                     $foPre.Rotation = [single]-8
                 }
-                if ($heroGlb -and ($nextSl.use_hero_3d -ne $false) -and $null -eq (Find-Shape $s "!!Hero3D")) {
-                    Ensure-Model3D $s "!!Hero3D" $heroGlb 1040 92 336 360 8 18 -4 | Out-Null
+                if ($heroGlb -and ($nextSl.use_hero_3d -eq $true) -and $null -eq (Find-Shape $s "!!Hero3D")) {
+                    Ensure-Model3D $s "!!Hero3D" $heroGlb 1040 114 388 336 8 18 -4 | Out-Null
                 }
             } elseif ($nextType -eq "cutout_map_stage") {
                 if ($nextSl._map_image) { Add-Pic $s "!!cm_map" $nextSl._map_image -560 54 520 432 | Out-Null }
@@ -906,9 +963,10 @@ try {
             } elseif ($nextType -eq "poster_depth_reveal") {
                 Add-Rect $s "!!poster_band" 348 -560 264 540 $cAcc1 0 -1 0 0 | Out-Null
                 $ngw = if ($nextSl.giant_word) { [string]$nextSl.giant_word } else { "2026" }
-                Add-Text $s "!!poster_word" $ngw 60 -180 840 138 $HeadingFont 116 $true $cWhite 2 3 | Out-Null
-                if ($nextSl._hero_cutout) { Add-Pic $s "!!poster_hero" $nextSl._hero_cutout 284 590 392 368 | Out-Null }
-                elseif ($heroGlb -and $null -eq (Find-Shape $s "!!Hero3D")) { Ensure-Model3D $s "!!Hero3D" $heroGlb 296 580 368 364 16 26 -2 | Out-Null }
+                $ngwSz = if ($ngw.Length -le 5) { [single]184 } else { [single]152 }
+                Add-Text $s "!!poster_word" $ngw 30 -240 900 220 $HeadingFont $ngwSz $true $cWhite 2 3 | Out-Null
+                if ($nextSl._hero_cutout) { Add-Pic $s "!!poster_hero" $nextSl._hero_cutout 262 590 436 352 | Out-Null }
+                elseif ($heroGlb -and $null -eq (Find-Shape $s "!!Hero3D")) { Ensure-Model3D $s "!!Hero3D" $heroGlb 268 580 424 344 16 26 -2 | Out-Null }
             } elseif ($nextType -eq "parchment_3d_split" -and $st -ne "parchment_3d_split") {
                 $lowNext = "$AssetsDir\s$($idx + 1)_split_lower.png"
                 if (Test-Path $lowNext) { Add-Pic $s "!!SplitLower" $lowNext 0 580 960 268 | Out-Null }
@@ -921,11 +979,24 @@ try {
             } elseif ($nextType -eq "refracted_spotlight_dock" -and $st -ne "refracted_spotlight_dock") {
                 $dockNext = "$AssetsDir\s$($idx + 1)_dock_refract.png"
                 $dpN = if (Test-Path $dockNext) { $dockNext } else { "$AssetsDir\dock_bg.png" }
-                Add-Pic $s "!!GlassDock" $dpN 40 620 880 128 | Out-Null
-                Add-Pic $s "!!DockGlider" "$AssetsDir\dock_glider.png" 54 680 208 108 | Out-Null
-                for ($dn = 1; $dn -le 4; $dn++) {
-                    if (Test-Path "$AssetsDir\thumb_$dn.png") {
-                        Add-Pic $s "!!DockThumb$dn" "$AssetsDir\thumb_$dn.png" (66 + ($dn - 1) * 216) (650 + $dn * 55) 76 60 | Out-Null
+                $nItems = @($nextSl.dock)
+                $nCount = if ($nItems.Count -le 3) { 3 } else { 4 }
+                Add-Pic $s "!!GlassDock" $dpN 40 620 880 136 | Out-Null
+                if ($nCount -eq 3) {
+                    Add-Pic $s "!!DockGlider" "$AssetsDir\dock_glider.png" 46 680 286 132 | Out-Null
+                    for ($dn = 1; $dn -le 3; $dn++) {
+                        if (Test-Path "$AssetsDir\thumb_$dn.png") {
+                            Add-Pic $s "!!DockThumb$dn" "$AssetsDir\thumb_$dn.png" (62 + ($dn - 1) * 280) (650 + $dn * 55) 92 52 | Out-Null
+                        }
+                        Add-Rect $s "!!DockLine$dn" (62 + ($dn - 1) * 280) 760 254 ([single]1.2) $cWhite ([single]0.5) -1 0 0 | Out-Null
+                    }
+                } else {
+                    Add-Pic $s "!!DockGlider" "$AssetsDir\dock_glider.png" 50 680 212 132 | Out-Null
+                    for ($dn = 1; $dn -le 4; $dn++) {
+                        if (Test-Path "$AssetsDir\thumb_$dn.png") {
+                            Add-Pic $s "!!DockThumb$dn" "$AssetsDir\thumb_$dn.png" (64 + ($dn - 1) * 216) (650 + $dn * 55) 76 44 | Out-Null
+                        }
+                        Add-Rect $s "!!DockLine$dn" (64 + ($dn - 1) * 216) 760 196 ([single]1.2) $cWhite ([single]0.5) -1 0 0 | Out-Null
                     }
                 }
             } elseif ($nextType -eq "rotational_drift_3d" -and $st -ne "rotational_drift_3d") {
@@ -948,7 +1019,7 @@ try {
             } elseif ($nextType -eq "closing_finale" -and $st -ne "closing_finale") {
                 Add-Text $s "!!fs_h1" $nextSl.headline -560 92 496 118 $DisplayFont 36 $true $cInk 1 1 | Out-Null
                 Add-Rect $s "!!fs_rule" -560 222 96 ([single]2.5) $cAcc1 0 -1 0 0 | Out-Null
-                if ($heroGlb -and $null -eq (Find-Shape $s "!!Hero3D")) { Ensure-Model3D $s "!!Hero3D" $heroGlb 1040 72 336 368 14 24 -2 | Out-Null }
+                if ($heroGlb -and $null -eq (Find-Shape $s "!!Hero3D")) { Ensure-Model3D $s "!!Hero3D" $heroGlb 1040 92 412 352 14 24 -2 | Out-Null }
             }
         }
 
@@ -959,7 +1030,7 @@ try {
 
     if (Test-Path $OutputPptx) { Remove-Item $OutputPptx -Force -ErrorAction SilentlyContinue }
     $pres.SaveAs($OutputPptx)
-    Write-Host ("Saved True-Morph v4.0.0 deck -> " + $OutputPptx)
+    Write-Host ("Saved True-Morph v5.0.0 deck -> " + $OutputPptx)
 
     if (-not $SkipExport) {
         for ($i = 1; $i -le $pres.Slides.Count; $i++) {

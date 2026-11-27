@@ -68,7 +68,7 @@
         "ry": 26.0,
         "rz": -10.0
       },
-      "use_hero_3d": true
+      "use_hero_3d": false
     },
     {
       "type": "cutout_map_stage",

@@ -31,8 +31,11 @@ from render_studio_assets import generate_all  # noqa: E402
 from studio_cutout import (  # noqa: E402
     render_cloud_sweep,
     render_hollow_gold_frame,
+    render_odometer_masks,
     render_organic_ink_drips,
+    render_refracted_card,
     render_silhouette_horizon,
+    render_soft_dock_glider,
     render_soft_paper_cloud,
 )
 from validate_spec import validate_spec  # noqa: E402
@@ -245,33 +248,41 @@ class TestMorphDeck3D(unittest.TestCase):
 
     def test_v4_portal_and_elevator_morph_continuity_and_alpha_dissolve(self):
         spec = {
-            "schema_version": 4,
+            "schema_version": 5,
             "universe": "architectural_portal",
             "brand": {"name": "Optical Test", "monogram": "OT"},
             "slides": [
                 {"type": "real_portal_flythrough", "stage": "exterior", "headline": "Exterior Pavilion"},
                 {"type": "real_portal_flythrough", "stage": "interior", "headline": "Interior Mullions", "body": "Seamless fly-through."},
+                {"type": "real_portal_flythrough", "stage": "horizon", "headline": "Alpine Horizon", "body": "Full panoramic arrival."},
                 {"type": "vertical_world_elevator", "elevator_stop": "upper_sky", "giant_word": "SUMMIT", "headline": "Sky Layer"},
                 {
                     "type": "vertical_world_elevator",
                     "elevator_stop": "lower_ground",
                     "giant_word": "SUMMIT",
                     "headline": "Ground Layer",
+                    "use_hero_3d": False,
                     "cards": [{"value": "2x", "title": "SSAA", "desc": "Crisp edges."}],
                 },
                 {
                     "type": "refracted_spotlight_dock",
                     "dock_index": 0,
                     "spotlight": {"tag": "01", "title": "Glass Dock", "subtitle": "Refracted", "body": "Clean."},
-                    "dock": [{"title": "One", "subtitle": "First"}],
+                    "dock": [{"title": "One", "subtitle": "First"}, {"title": "Two", "subtitle": "Second"}, {"title": "Three", "subtitle": "Third"}],
+                },
+                {
+                    "type": "refracted_spotlight_dock",
+                    "dock_index": 1,
+                    "spotlight": {"tag": "02", "title": "Curtain Wipe", "subtitle": "Wiped", "body": "Smooth."},
+                    "dock": [{"title": "One", "subtitle": "First"}, {"title": "Two", "subtitle": "Second"}, {"title": "Three", "subtitle": "Third"}],
                 },
                 {"type": "closing_finale", "headline": "Finale", "summary": "Verified.", "metrics": [{"value": "100%", "label": "MORPH"}]},
             ],
         }
         with tempfile.TemporaryDirectory() as tmp:
-            spec_p = os.path.join(tmp, "v4_portal.json")
+            spec_p = os.path.join(tmp, "v5_portal.json")
             assets_d = os.path.join(tmp, "assets")
-            out_pptx = os.path.join(tmp, "v4_portal.pptx")
+            out_pptx = os.path.join(tmp, "v5_portal.pptx")
             with open(spec_p, "w", encoding="utf-8") as f:
                 json.dump(spec, f)
             prepare_all(spec_p, assets_d)
@@ -279,7 +290,40 @@ class TestMorphDeck3D(unittest.TestCase):
             self.assertEqual(verify_pptx(out_pptx, require_3d=False, require_morph_pairs=True), 0)
             with zipfile.ZipFile(out_pptx, "r") as z:
                 s2 = z.read("ppt/slides/slide2.xml").decode("utf-8")
+                s3 = z.read("ppt/slides/slide3.xml").decode("utf-8")
+                s6 = z.read("ppt/slides/slide6.xml").decode("utf-8")
                 self.assertIn('alphaModFix amt="0"', s2)
+                self.assertIn('alphaModFix amt="0"', s3)
+                self.assertIn('t="-100000" b="100000"', s6)
+                self.assertIn('name="!!DockLine1"', s6)
+
+    def test_v5_feathered_masks_glider_and_frosted_cards(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            top_p, bot_p = render_odometer_masks(
+                os.path.join(tmp, "odo_top.png"),
+                os.path.join(tmp, "odo_bot.png"),
+                bg_hex="#08090C",
+            )
+            glider_p = render_soft_dock_glider(os.path.join(tmp, "glider.png"), width=540, height=264)
+            bg_p = os.path.join(tmp, "bg.png")
+            Image.new("RGB", (1920, 1080), (40, 80, 120)).save(bg_p, "PNG")
+            rcard_p = render_refracted_card(bg_p, os.path.join(tmp, "rcard.png"), crop_box=(100, 100, 600, 340))
+            with Image.open(top_p) as tim:
+                tarr = np.array(tim.convert("RGBA"))
+                self.assertEqual(int(tarr[10, 10, 3]), 255)
+                self.assertLessEqual(int(tarr[-2, 10, 3]), 4)
+                self.assertEqual(int(tarr[-1, 10, 3]), 0)
+            with Image.open(bot_p) as bim:
+                barr = np.array(bim.convert("RGBA"))
+                self.assertEqual(int(barr[0, 10, 3]), 0)
+                self.assertLessEqual(int(barr[1, 10, 3]), 4)
+                self.assertEqual(int(barr[-10, 10, 3]), 255)
+            with Image.open(glider_p) as gim:
+                self.assertEqual(gim.mode, "RGBA")
+                self.assertEqual(gim.size, (540, 264))
+            with Image.open(rcard_p) as rim:
+                self.assertEqual(rim.mode, "RGBA")
+                self.assertEqual(rim.size, (500, 240))
 
     def test_v3_lighting_universes(self):
         sample_xml = (

@@ -296,8 +296,8 @@ def render_glb_to_image(
     pmax = all_pts.max(axis=0)
     center = 0.5 * (pmin + pmax)
     span = max(0.05, float(np.max(pmax - pmin)))
-    cam_dist = span * 2.40
-    focal = min(W, H) * 0.82 / (span / cam_dist)
+    cam_dist = span * 2.75
+    focal = min(W, H) * 0.68 / (span / cam_dist)
 
     key_l = np.array([0.48, 0.68, 0.55], dtype=np.float32)
     key_l /= np.linalg.norm(key_l)

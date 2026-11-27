@@ -41,9 +41,12 @@ from studio_cutout import (  # noqa: E402
     render_cloud_sweep,
     render_gallery_wall_room,
     render_hollow_gold_frame,
+    render_odometer_masks,
     render_organic_ink_drips,
+    render_refracted_card,
     render_refracted_glass_dock,
     render_silhouette_horizon,
+    render_soft_dock_glider,
     render_soft_paper_cloud,
     split_horizon_cutout,
 )
@@ -440,18 +443,13 @@ def prepare_all(spec_path: str, out_dir: str) -> dict:
     draw_glass_or_swiss_card(1024, 520, surf_rgb, acc1, border_rgb, is_light, 24, "left").save(os.path.join(out_dir, "card_panel.png"), "PNG")
     draw_glass_or_swiss_card(1760, 256, surf_rgb, acc1, border_rgb, is_light, 32, "none").save(os.path.join(out_dir, "dock_bg.png"), "PNG")
 
-    # Sleek borderless frosted active glider capsule + crisp bottom underline (replaces heavy orange box)
-    gw, gh = 416, 216
-    glider = Image.new("RGBA", (gw, gh), (0, 0, 0, 0))
-    gd = ImageDraw.Draw(glider)
-    gd.rounded_rectangle([4, 4, gw - 4, gh - 4], radius=24, fill=(255, 255, 255, 38), outline=(255, 255, 255, 128), width=2)
-    gd.rounded_rectangle([24, gh - 10, gw - 24, gh - 5], radius=3, fill=(255, 255, 255, 235))
-    glider.save(os.path.join(out_dir, "dock_glider.png"), "PNG")
+    render_soft_dock_glider(os.path.join(out_dir, "dock_glider.png"), width=540, height=264, radius=28)
 
     render_organic_ink_drips(os.path.join(out_dir, "ep_drips.png"), color_hex=pal["accent1"])
     render_soft_paper_cloud(os.path.join(out_dir, "ep_paper_cloud.png"), paper_hex=pal["surface"])
     render_cloud_sweep(os.path.join(out_dir, "flyby_cloud.png"))
     render_silhouette_horizon(os.path.join(out_dir, "odo_silhouette.png"), color_hex=pal["accent1"])
+    render_odometer_masks(os.path.join(out_dir, "odo_mask_top.png"), os.path.join(out_dir, "odo_mask_bot.png"), bg_hex="#08090C")
 
     resolved_glb_out = _resolve_glb_entry(resolved.get("hero_3d", {}), os.path.join(out_dir, "hero_real.glb"), rel)
     if resolved_glb_out and os.path.exists(resolved_glb_out):
@@ -479,7 +477,8 @@ def prepare_all(spec_path: str, out_dir: str) -> dict:
                 dst_crop = os.path.join(out_dir, f"s{idx}_{p_key}.png")
                 cropped = cover_crop(Image.open(res_p).convert("RGB"), 1920, 1080)
                 if p_key == "bg_image" and st in ("flyby_wipe", "refracted_spotlight_dock", "closing_finale"):
-                    cropped = apply_tonal_text_scrim(cropped, zone="left", strength=0.62)
+                    scrim_zone = "left_upper" if st == "refracted_spotlight_dock" else "left"
+                    cropped = apply_tonal_text_scrim(cropped, zone=scrim_zone, strength=0.68)
                 cropped.save(dst_crop, "PNG")
                 sl[f"_{p_key}"] = dst_crop
 
@@ -540,12 +539,19 @@ def prepare_all(spec_path: str, out_dir: str) -> dict:
                     ).save(dst_p, "PNG")
                     sl[f"_{field_key}"] = dst_p
 
+        if st == "odometer_counter" and sl.get("bg_hex"):
+            render_odometer_masks(
+                os.path.join(out_dir, f"s{idx}_odo_mask_top.png"),
+                os.path.join(out_dir, f"s{idx}_odo_mask_bot.png"),
+                bg_hex=str(sl.get("bg_hex", "#08090C")),
+            )
+
         if st == "real_portal_flythrough" and not portal_done:
             bg_src = _resolve_photo_field(sl, "portal_bg_image", "portal_bg_query", "portal_bg_url", out_dir, f"s{idx}_pbg", rel) or sl.get("_bg_image", "")
             pbg_out = os.path.join(out_dir, "portal_bg.png")
             if bg_src and os.path.exists(bg_src):
                 pbg_im = cover_crop(Image.open(bg_src).convert("RGB"), 1920, 1080)
-                apply_tonal_text_scrim(pbg_im, pbg_out, zone="left", strength=0.48)
+                apply_tonal_text_scrim(pbg_im, pbg_out, zone="left", strength=0.72)
             else:
                 shutil.copyfile(os.path.join(out_dir, "bg_base.png"), pbg_out)
 
@@ -565,7 +571,7 @@ def prepare_all(spec_path: str, out_dir: str) -> dict:
                 if os.path.exists(bundled):
                     shutil.copyfile(bundled, dst_path)
                     return
-                if bg_src:  # Online run (e.g. Agensi text bundle): pull studio RGBA portal plate from GitHub CDN
+                if bg_src:
                     try:
                         from fetch_real_glb import _http_get
                         raw_png = _http_get(f"{cdn_base}/{plate_filename}", timeout=30)
@@ -577,14 +583,25 @@ def prepare_all(spec_path: str, out_dir: str) -> dict:
                         pass
                 fallback_fn(dst_path)
 
+            ext_raw_out = os.path.join(out_dir, "portal_outer.png")
             _resolve_portal_plate(
                 local_out,
                 "portal_exterior.png",
-                os.path.join(out_dir, "portal_outer.png"),
+                ext_raw_out,
                 lambda dst: render_architectural_portal_exterior(
                     pbg_out, dst, is_light=is_light, stone_hex=pal["surface"] if is_light else "#222630"
                 ),
             )
+            if os.path.exists(ext_raw_out):
+                with Image.open(ext_raw_out) as ext_im:
+                    e_rgba = ext_im.convert("RGBA")
+                    ea = np.asarray(e_rgba, dtype=np.float32)
+                    eh, ew, _ = ea.shape
+                    eyy, exx = np.mgrid[0:eh, 0:ew].astype(np.float32)
+                    epool = (np.clip((eyy / eh - 0.56) / 0.44, 0.0, 1.0) ** 1.15) * (np.clip((exx / ew - 0.16) / 0.65, 0.0, 1.0) ** 1.1)
+                    ea[..., :3] = np.clip(ea[..., :3] * (1.0 - epool[..., None] * 0.54), 0, 255)
+                    Image.fromarray(ea.astype(np.uint8), "RGBA").save(ext_raw_out, "PNG")
+
             _resolve_portal_plate(
                 local_in,
                 "portal_interior.png",
@@ -603,21 +620,47 @@ def prepare_all(spec_path: str, out_dir: str) -> dict:
                 yy_p, xx_p = np.mgrid[0:2160, 0:1920].astype(np.float32)
                 yn_p = yy_p / 2160.0
                 xn_p = xx_p / 1920.0
-                # First compute clean sky/mountain horizon seam BEFORE applying lower-left text ND scrim
                 raw_pano_p = os.path.join(out_dir, "_elev_raw.png")
                 pano_im.save(raw_pano_p, "PNG")
                 split_horizon_cutout(raw_pano_p, os.path.join(out_dir, "elev_fg.png"), size=(1920, 2160))
 
-                # Darken lower-left slope on upper_sky stop (yn in 0.28..0.52, xn < 0.56) AND lower_ground stop
-                ul_scrim = (np.clip(1.0 - xn_p / 0.58, 0.0, 1.0) ** 1.3) * np.exp(-((yn_p - 0.41) ** 2) / 0.0085) * 0.58
-                low_scrim = 0.44 * np.clip((yn_p - 0.52) / 0.48, 0.0, 1.0)
-                darken = (1.0 - np.maximum(ul_scrim, low_scrim))[..., None]
+                ul_scrim = (np.clip(1.0 - xn_p / 0.58, 0.0, 1.0) ** 1.3) * np.exp(-((yn_p - 0.41) ** 2) / 0.0085) * 0.62
+                top_band_scrim = np.clip(1.0 - (yn_p - 0.48) / 0.16, 0.0, 1.0) * np.clip((yn_p - 0.46) / 0.06, 0.0, 1.0) * 0.60
+                low_scrim = 0.48 * np.clip((yn_p - 0.52) / 0.48, 0.0, 1.0)
+                darken = (1.0 - np.maximum(np.maximum(ul_scrim, low_scrim), top_band_scrim))[..., None]
 
                 Image.fromarray(np.clip(pano_arr * darken, 0, 255).astype(np.uint8), "RGB").save(os.path.join(out_dir, "elev_bg.png"), "PNG")
                 with Image.open(os.path.join(out_dir, "elev_fg.png")) as fg_im:
                     fg_arr = np.asarray(fg_im, dtype=np.float32)
                     fg_rgb = np.clip(fg_arr[..., :3] * darken, 0, 255).astype(np.uint8)
                     Image.fromarray(np.dstack([fg_rgb, fg_arr[..., 3].astype(np.uint8)]), "RGBA").save(os.path.join(out_dir, "elev_fg.png"), "PNG")
+
+                lower_view_p = os.path.join(out_dir, "_elev_lower_view.png")
+                with Image.open(os.path.join(out_dir, "elev_bg.png")) as ebg_im:
+                    ebg_im.crop((0, 1040, 1920, 2120)).save(lower_view_p, "PNG")
+                for ci in range(3):
+                    # 3-card horizontal frosted glass triptych across lower half of lower_ground
+                    cx_pt = 48 + ci * 298
+                    box_px = (cx_pt * 2, 348 * 2, (cx_pt + 268) * 2, 488 * 2)
+                    render_refracted_card(
+                        lower_view_p,
+                        os.path.join(out_dir, f"elev_rcard_h_{ci + 1}.png"),
+                        crop_box=box_px,
+                        radius=22,
+                        tint_rgba=(14, 18, 28, 138),
+                        accent_hex=pal["accent1"],
+                    )
+                    # Also render right-stack variant when hero 3D sits on left
+                    cy_pt = 142 + ci * 118
+                    rbox_px = (888, cy_pt * 2, 1824, (cy_pt + 102) * 2)
+                    render_refracted_card(
+                        lower_view_p,
+                        os.path.join(out_dir, f"elev_rcard_{ci + 1}.png"),
+                        crop_box=rbox_px,
+                        radius=22,
+                        tint_rgba=(14, 18, 28, 138),
+                        accent_hex=pal["accent1"],
+                    )
 
         if st == "parchment_3d_split":
             low_src = sl.get("_lower_image") or sl.get("_bg_image") or ""
@@ -631,15 +674,21 @@ def prepare_all(spec_path: str, out_dir: str) -> dict:
                 shutil.copyfile(bg_src, bg_dst)
             else:
                 shutil.copyfile(os.path.join(out_dir, "bg_base.png"), bg_dst)
-            render_refracted_glass_dock(bg_dst, os.path.join(out_dir, f"s{idx}_dock_refract.png"), tint_rgba=(16, 20, 30, 118))
+            render_refracted_glass_dock(
+                bg_dst,
+                os.path.join(out_dir, f"s{idx}_dock_refract.png"),
+                crop_box=(80, 772, 1840, 1044),
+                blur_radius=34,
+                tint_rgba=(14, 18, 28, 88),
+            )
             if not dock_thumbs_done:
                 for di, it in enumerate(sl.get("dock", [])[:4], start=1):
                     tsrc = _resolve_photo_field(it, "image", "query", "url", out_dir, f"thumb_{di}", rel)
                     tdst = os.path.join(out_dir, f"thumb_{di}.png")
                     if tsrc and os.path.exists(tsrc):
-                        cover_crop(Image.open(tsrc).convert("RGB"), 220, 148).save(tdst, "PNG")
+                        cover_crop(Image.open(tsrc).convert("RGB"), 240, 136).save(tdst, "PNG")
                     else:
-                        _build_textured_canvas(220, 148, acc1 if di % 2 else acc2, seed=100 + di).save(tdst, "PNG")
+                        _build_textured_canvas(240, 136, acc1 if di % 2 else acc2, seed=100 + di).save(tdst, "PNG")
                 dock_thumbs_done = True
 
         if st == "picture_frame_pullback":

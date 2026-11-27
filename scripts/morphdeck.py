@@ -2,10 +2,10 @@
 # Copyright 2026 7AK3SH1
 # Licensed under the Apache License, Version 2.0 (see LICENSE and NOTICE).
 """
-Unified CLI for morphdeck-3d v3.0.0 ("Cinema-Morph & Photorealistic 3D").
+Unified CLI for morphdeck-3d v5.0.0 ("True-Morph Physics & Museum-Grade 3D Optics").
 
 Commands:
-    universes   List Cinema-Morph v3 Visual Universes & legacy themes
+    universes   List Cinema-Morph v5 Visual Universes & legacy themes
     list        Alias for catalog listing (subjects, meshes, themes, universes)
     init        Scaffold a ready-to-edit deck JSON spec
     fetch-3d    Download/search real high-poly CC0 .glb models (Khronos / Poly Haven / NASA)
@@ -51,11 +51,11 @@ except ImportError:
 
 
 def cmd_universes(_args: argparse.Namespace) -> None:
-    print("morphdeck-3d v3.0.0 Cinema-Morph Visual Universes:")
+    print("morphdeck-3d v5.0.0 Cinema-Morph Visual Universes:")
     for uname, u in UNIVERSES.items():
         mode = "light" if u["is_light"] else "dark "
         print(f"  - {uname:22s} ({mode} | bg={u['bg']} accent={u['accents'][0]} | {u['display_font']})")
-    print(f"\nCinema-Morph v3 Slide Types ({len(VALID_CINEMA_SLIDE_TYPES)}):")
+    print(f"\nCinema-Morph v5 Slide Types ({len(VALID_CINEMA_SLIDE_TYPES)}):")
     for st in sorted(VALID_CINEMA_SLIDE_TYPES):
         print(f"  - {st}")
 

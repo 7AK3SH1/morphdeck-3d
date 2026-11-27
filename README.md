@@ -5,24 +5,24 @@
 **Cinema-Morph & Photorealistic 3D PowerPoint Engineering Skill for AI Coding Agents**
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-4.0.0_True_Morph-E11D48.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/Version-5.0.0_True_Morph-E11D48.svg)](CHANGELOG.md)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB.svg)](pyproject.toml)
 [![Universes](https://img.shields.io/badge/Visual_Universes-6_Distinct_Aesthetics-8B5CF6.svg)](#6-visual-universes)
 [![Morph Engines](https://img.shields.io/badge/Morph_Engines-17_Cinema_Transitions-EC4899.svg)](#17-cinema-morph-slide-engines)
 [![Real 3D](https://img.shields.io/badge/3D_Assets-Khronos_%7C_Poly_Haven_%7C_NASA_GLB-10B981.svg)](#real-high-poly-cc0-3d--open-license-4k-photography)
 [![Agent Skills](https://img.shields.io/badge/Agent_Skill-Antigravity_%7C_Claude_%7C_Codex_%7C_Cursor-F59E0B.svg)](#quickstart-installation)
 
-![MorphDeck 3D v3 Showcase Banner](docs/showcase/hero_banner.png)
+![MorphDeck 3D v5 Showcase Banner](docs/showcase/hero_banner.png)
 
 </div>
 
 ---
 
-## Why MorphDeck 3D v4.0.0?
+## Why MorphDeck 3D v5.0.0?
 
-Most AI presentation tools produce identical SaaS templates, clunky dark text boxes slapped over random stock photos, or broken static XML slides. **MorphDeck 3D v4.0.0** is an open-source Agent Skill and dual-engine OpenXML/COM pipeline engineered with **True-Morph pre/post-staging physics, `<a:alphaModFix>` optical portal dissolves, 2x-SSAA Z-buffered CC0 `.glb` 3D rendering, and juried Wikimedia Featured 4K photography**.
+Most AI presentation tools produce identical SaaS templates, clunky dark text boxes slapped over random stock photos, or broken static XML slides. **MorphDeck 3D v5.0.0** is an open-source Agent Skill and dual-engine OpenXML/COM pipeline engineered with **True-Morph pre/post-staging physics, `<a:alphaModFix>` optical portal dissolves, 2x-SSAA Z-buffered CC0 `.glb` 3D rendering, feathered odometer reels, borderless Gaussian-refracted docks, and juried Wikimedia Featured 4K photography**.
 
-| Capability | Generic AI Slide Generators | MorphDeck 3D v4.0.0 (`morphdeck-3d`) |
+| Capability | Generic AI Slide Generators | MorphDeck 3D v5.0.0 (`morphdeck-3d`) |
 | :--- | :--- | :--- |
 | **3D Visual Fidelity** | Flat stock icons or faceted polygons | **Real Khronos, Poly Haven & NASA CC0 `.glb` models** with **3-point `<am3d:ptLight>` studio rigs** (COM) and **2x-SSAA Z-buffered smooth-Phong bilinear PBR rendering** (cross-platform) |
 | **True-Morph Physics** | Hard slide cuts or static cross-fades | **Unbroken pre/post-staged `!!` continuity on every slide pair**, **`<a:alphaModFix amt="0"/>` portal fly-through dissolves**, **pre-masked odometer reels**, and **live 3D concentric museum frame shrink** |

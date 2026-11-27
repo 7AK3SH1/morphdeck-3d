@@ -109,10 +109,21 @@ def apply_tonal_text_scrim(
 
     if zone == "left":
         mask = np.clip(1.0 - (xn - 0.08) / 0.54, 0.0, 1.0) ** 1.35
+    elif zone == "left_upper":
+        m_x = np.clip(1.0 - (xn - 0.06) / 0.52, 0.0, 1.0) ** 1.25
+        m_y = np.clip(1.0 - (yn - 0.15) / 0.65, 0.0, 1.0) ** 1.15
+        mask = m_x * (0.45 + 0.55 * m_y)
     elif zone == "right":
         mask = np.clip((xn - 0.38) / 0.54, 0.0, 1.0) ** 1.35
     elif zone == "bottom":
         mask = np.clip((yn - 0.42) / 0.58, 0.0, 1.0) ** 1.30
+    elif zone == "bottom_right":
+        m_y = np.clip((yn - 0.54) / 0.44, 0.0, 1.0) ** 1.25
+        m_x = np.clip((xn - 0.22) / 0.56, 0.0, 1.0) ** 1.15
+        mask = m_y * m_x
+    elif zone == "vignette":
+        r2 = ((xn - 0.50) / 0.58) ** 2 + ((yn - 0.46) / 0.58) ** 2
+        mask = np.clip((r2 - 0.28) / 0.85, 0.0, 1.0) ** 1.2
     elif zone == "top_bottom":
         m_top = np.clip(1.0 - yn / 0.34, 0.0, 1.0) ** 1.5 * 0.65
         m_bot = np.clip((yn - 0.58) / 0.42, 0.0, 1.0) ** 1.4
@@ -496,31 +507,100 @@ def render_refracted_glass_dock(
     bg_path: str,
     out_path: str,
     crop_box: tuple[int, int, int, int] = (80, 772, 1840, 1028),
-    blur_radius: int = 28,
-    tint_rgba: tuple[int, int, int, int] = (14, 18, 28, 116),
+    blur_radius: int = 34,
+    tint_rgba: tuple[int, int, int, int] = (14, 18, 28, 84),
     radius: int = 32,
 ) -> str:
-    """Create a sleek borderless backdrop-refracted glass dock cropped and blurred directly from bg_path."""
+    """Create a luminous borderless backdrop-refracted glass dock cropped and blurred directly from bg_path."""
     bg = cover_crop(Image.open(bg_path).convert("RGB"), 1920, 1080)
     w = crop_box[2] - crop_box[0]
     h = crop_box[3] - crop_box[1]
     sliced = bg.crop(crop_box).filter(ImageFilter.GaussianBlur(blur_radius))
-    glass = Image.alpha_composite(sliced.convert("RGBA"), Image.new("RGBA", (w, h), tint_rgba))
+    s_arr = np.asarray(sliced, dtype=np.float32) * 0.86 + 18.0
+    glass = Image.alpha_composite(
+        Image.fromarray(np.clip(s_arr, 0, 255).astype(np.uint8), "RGB").convert("RGBA"),
+        Image.new("RGBA", (w, h), tint_rgba),
+    )
 
     iw, ih = w - 12, h - 16
     mask = Image.new("L", (iw * 2, ih * 2), 0)
-    ImageDraw.Draw(mask).rounded_rectangle([0, 0, iw * 2 - 1, ih * 2 - 1], radius=radius * 2, fill=246)
+    ImageDraw.Draw(mask).rounded_rectangle([0, 0, iw * 2 - 1, ih * 2 - 1], radius=radius * 2, fill=244)
     mask = mask.resize((iw, ih), Image.Resampling.LANCZOS)
 
     canvas = Image.new("RGBA", (w, h), (0, 0, 0, 0))
     sh = Image.new("RGBA", (w, h), (0, 0, 0, 0))
-    ImageDraw.Draw(sh).rounded_rectangle([12, 14, w - 12, h - 4], radius=radius + 2, fill=(0, 0, 0, 128))
-    canvas = Image.alpha_composite(canvas, sh.filter(ImageFilter.GaussianBlur(10)))
+    ImageDraw.Draw(sh).rounded_rectangle([14, 14, w - 14, h - 4], radius=radius + 2, fill=(0, 0, 0, 108))
+    canvas = Image.alpha_composite(canvas, sh.filter(ImageFilter.GaussianBlur(12)))
     canvas.paste(glass.crop((6, 6, w - 6, h - 10)), (6, 6), mask)
 
     d = ImageDraw.Draw(canvas)
-    d.rounded_rectangle([6, 6, w - 6, h - 10], radius=radius, outline=(255, 255, 255, 58), width=1)
-    d.line([(6 + radius, 7), (w - 6 - radius, 7)], fill=(255, 255, 255, 145), width=2)
+    d.line([(6 + radius, 7), (w - 6 - radius, 7)], fill=(255, 255, 255, 130), width=2)
+
+    os.makedirs(os.path.dirname(os.path.abspath(out_path)), exist_ok=True)
+    canvas.save(out_path, "PNG")
+    return out_path
+
+
+def render_soft_dock_glider(
+    out_path: str,
+    width: int = 560,
+    height: int = 272,
+    radius: int = 28,
+) -> str:
+    """Create a vertical-fading soft translucent white-frosted glider capsule (0px hard outline)."""
+    yy, _ = np.mgrid[0:height, 0:width].astype(np.float32)
+    yn = yy / max(1.0, float(height - 1))
+    grad_a = (1.0 - np.clip(yn / 0.94, 0.0, 1.0)) ** 1.15 * 84.0 + 10.0 * (1.0 - yn)
+    mask_im = Image.new("L", (width * 2, height * 2), 0)
+    ImageDraw.Draw(mask_im).rounded_rectangle([8, 8, width * 2 - 9, height * 2 - 9], radius=radius * 2, fill=255)
+    mask_arr = np.asarray(mask_im.resize((width, height), Image.Resampling.LANCZOS), dtype=np.float32) / 255.0
+
+    rgba = np.zeros((height, width, 4), dtype=np.uint8)
+    rgba[..., 0] = 248
+    rgba[..., 1] = 250
+    rgba[..., 2] = 255
+    rgba[..., 3] = np.clip(grad_a * mask_arr, 0, 255).astype(np.uint8)
+    out = Image.fromarray(rgba, mode="RGBA")
+    os.makedirs(os.path.dirname(os.path.abspath(out_path)), exist_ok=True)
+    out.save(out_path, "PNG")
+    return out_path
+
+
+def render_refracted_card(
+    bg_path: str,
+    out_path: str,
+    crop_box: tuple[int, int, int, int],
+    radius: int = 24,
+    blur_radius: int = 28,
+    tint_rgba: tuple[int, int, int, int] = (14, 18, 28, 148),
+    accent_hex: str | None = None,
+) -> str:
+    """Slice and Gaussian-blur exact background photo coordinates to render a luminous frosted glass card."""
+    bg = cover_crop(Image.open(bg_path).convert("RGB"), 1920, 1080)
+    x0, y0, x1, y1 = crop_box
+    x0c, y0c = max(0, min(1900, int(x0))), max(0, min(1060, int(y0)))
+    x1c, y1c = max(x0c + 20, min(1920, int(x1))), max(y0c + 20, min(1080, int(y1)))
+    w, h = x1c - x0c, y1c - y0c
+
+    sliced = bg.crop((x0c, y0c, x1c, y1c)).filter(ImageFilter.GaussianBlur(blur_radius))
+    glass = Image.alpha_composite(sliced.convert("RGBA"), Image.new("RGBA", (w, h), tint_rgba))
+
+    mask = Image.new("L", (w * 2, h * 2), 0)
+    ImageDraw.Draw(mask).rounded_rectangle([8, 8, w * 2 - 9, h * 2 - 9], radius=radius * 2, fill=248)
+    mask = mask.resize((w, h), Image.Resampling.LANCZOS)
+
+    canvas = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    sh = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    ImageDraw.Draw(sh).rounded_rectangle([6, 8, w - 6, h - 2], radius=radius + 2, fill=(0, 0, 0, 96))
+    canvas = Image.alpha_composite(canvas, sh.filter(ImageFilter.GaussianBlur(8)))
+    canvas.paste(glass, (0, 0), mask)
+
+    d = ImageDraw.Draw(canvas)
+    d.rounded_rectangle([4, 4, w - 5, h - 5], radius=radius, outline=(255, 255, 255, 54), width=1)
+    d.line([(4 + radius, 5), (w - 5 - radius, 5)], fill=(255, 255, 255, 128), width=2)
+    if accent_hex:
+        ac = hex_to_rgb(accent_hex, (194, 65, 12))
+        d.rounded_rectangle([4, 24, 9, h - 24], radius=2, fill=(*ac, 235))
 
     os.makedirs(os.path.dirname(os.path.abspath(out_path)), exist_ok=True)
     canvas.save(out_path, "PNG")
@@ -534,26 +614,20 @@ def render_organic_ink_drips(
     color_hex: str = "#B91C1C",
     start_x_frac: float = 0.0,
 ) -> str:
-    """
-    Generate an authentic archival deckle-edge torn header banner with fine letterpress fiber grain
-    (replaces cartoonish blobs with museum documentary craft).
-    """
+    """Generate an authentic archival letterpress tear band with natural low-frequency deckle curve."""
     rgb = hex_to_rgb(color_hex, (185, 28, 28))
     rng = np.random.default_rng(74)
     yy, xx = np.mgrid[0:height, 0:width].astype(np.float32)
     x_norm = np.linspace(0.0, 1.0, width, dtype=np.float32)
 
-    # Multi-scale Fractal Brownian deckle tear profile along bottom of archival header band
-    tear = (
-        92.0
-        + 11.0 * np.sin(x_norm * 13.0 + 0.4)
-        + 6.5 * np.cos(x_norm * 37.0 + 1.1)
-        + 3.5 * np.sin(x_norm * 97.0)
-        + rng.normal(0.0, 1.8, size=width).astype(np.float32)
-    )
-    # White fibrous deckle under-edge (4px offset) + crisp crimson over-layer
-    alpha_crimson = np.clip((tear[None, :] - yy) * 0.85, 0.0, 1.0)
-    alpha_fiber = np.clip((tear[None, :] + 5.5 - yy) * 0.65, 0.0, 1.0) * (1.0 - alpha_crimson)
+    raw_n = rng.normal(0.0, 4.0, size=width).astype(np.float32)
+    k = np.exp(-0.5 * (np.arange(-12, 13, dtype=np.float32) / 4.2) ** 2)
+    k /= k.sum()
+    smooth_n = np.convolve(np.pad(raw_n, (12, 12), mode="edge"), k, mode="valid")
+
+    tear = 78.0 + 7.0 * np.sin(x_norm * 7.0 + 0.3) + 3.5 * np.cos(x_norm * 17.0 + 1.1) + smooth_n
+    alpha_crimson = np.clip((tear[None, :] - yy) * 0.75, 0.0, 1.0)
+    alpha_fiber = np.clip((tear[None, :] + 3.5 - yy) * 0.55, 0.0, 1.0) * (1.0 - alpha_crimson)
 
     x0 = int(width * start_x_frac)
     if x0 > 0:
@@ -561,17 +635,17 @@ def render_organic_ink_drips(
         alpha_crimson *= fade_x
         alpha_fiber *= fade_x
 
-    grain = rng.integers(-8, 9, size=(height, width, 1), dtype=np.int16)
+    grain = rng.integers(-6, 7, size=(height, width, 1), dtype=np.int16)
     crim_rgb = np.clip(np.full((height, width, 3), rgb, dtype=np.int16) + grain, 0, 255).astype(np.float32)
     fiber_rgb = np.full((height, width, 3), (244.0, 239.0, 228.0), dtype=np.float32)
 
-    tot_a = np.clip(alpha_crimson + alpha_fiber * 0.92, 0.0, 1.0)
+    tot_a = np.clip(alpha_crimson + alpha_fiber * 0.85, 0.0, 1.0)
     comp_rgb = np.where(
         tot_a[..., None] > 1e-4,
-        (crim_rgb * alpha_crimson[..., None] + fiber_rgb * (alpha_fiber * 0.92)[..., None]) / np.maximum(tot_a[..., None], 1e-4),
+        (crim_rgb * alpha_crimson[..., None] + fiber_rgb * (alpha_fiber * 0.85)[..., None]) / np.maximum(tot_a[..., None], 1e-4),
         0.0,
     )
-    rgba = np.dstack([np.clip(comp_rgb, 0, 255).astype(np.uint8), (tot_a * 250.0).astype(np.uint8)])
+    rgba = np.dstack([np.clip(comp_rgb, 0, 255).astype(np.uint8), (tot_a * 246.0).astype(np.uint8)])
     canvas = Image.fromarray(rgba, mode="RGBA")
     os.makedirs(os.path.dirname(os.path.abspath(out_path)), exist_ok=True)
     canvas.save(out_path, "PNG")
@@ -584,25 +658,27 @@ def render_soft_paper_cloud(
     height: int = 620,
     paper_hex: str = "#F5EFE2",
 ) -> str:
-    """Create a clean archival torn-edge vellum reading sheet with subtle drop shadow (never a blurry smudge)."""
+    """Create a refined museum archival vellum reading sheet with ultra-subtle deckle edge and soft drop shadow."""
     rgb = hex_to_rgb(paper_hex, (245, 239, 226))
     rng = np.random.default_rng(108)
     yy, xx = np.mgrid[0:height, 0:width].astype(np.float32)
 
-    # Deckle-edged rectangular sheet inside [36..width-36, 28..height-36]
-    jx = 4.0 * np.sin(yy[:, 0] * 0.09) + rng.normal(0, 1.2, size=height)
-    jy = 4.0 * np.cos(xx[0, :] * 0.08) + rng.normal(0, 1.2, size=width)
-    in_x = (xx >= (38.0 + jx[:, None])) & (xx <= (width - 38.0 + jx[:, None]))
-    in_y = (yy >= (28.0 + jy[None, :])) & (yy <= (height - 38.0 + jy[None, :]))
+    ky = np.exp(-0.5 * (np.arange(-10, 11, dtype=np.float32) / 3.8) ** 2)
+    ky /= ky.sum()
+    jx = np.convolve(np.pad(rng.normal(0, 3.2, size=height).astype(np.float32), (10, 10), mode="edge"), ky, mode="valid")
+    jy = np.convolve(np.pad(rng.normal(0, 3.2, size=width).astype(np.float32), (10, 10), mode="edge"), ky, mode="valid")
+
+    in_x = (xx >= (36.0 + jx[:, None])) & (xx <= (width - 36.0 + jx[:, None]))
+    in_y = (yy >= (26.0 + jy[None, :])) & (yy <= (height - 36.0 + jy[None, :]))
     sheet = (in_x & in_y).astype(np.uint8) * 248
 
-    sh_im = Image.fromarray(sheet, mode="L").filter(ImageFilter.GaussianBlur(12))
+    sh_im = Image.fromarray(sheet, mode="L").filter(ImageFilter.GaussianBlur(14))
     canvas = Image.new("RGBA", (width, height), (0, 0, 0, 0))
     sh_rgba = np.zeros((height, width, 4), dtype=np.uint8)
-    sh_rgba[..., 3] = (np.asarray(sh_im, dtype=np.float32) * 0.28).astype(np.uint8)
+    sh_rgba[..., 3] = (np.asarray(sh_im, dtype=np.float32) * 0.24).astype(np.uint8)
     canvas = Image.alpha_composite(canvas, Image.fromarray(sh_rgba, "RGBA"))
 
-    grain = rng.integers(-4, 5, size=(height, width, 1), dtype=np.int16)
+    grain = rng.integers(-3, 4, size=(height, width, 1), dtype=np.int16)
     p_rgb = np.clip(np.full((height, width, 3), rgb, dtype=np.int16) + grain, 0, 255).astype(np.uint8)
     sheet_smooth = np.asarray(Image.fromarray(sheet, mode="L").filter(ImageFilter.GaussianBlur(0.8)))
     fg = Image.fromarray(np.dstack([p_rgb, sheet_smooth]), mode="RGBA")
@@ -698,6 +774,39 @@ def render_silhouette_horizon(
     os.makedirs(os.path.dirname(os.path.abspath(out_path)), exist_ok=True)
     out.save(out_path, "PNG")
     return out_path
+
+
+def render_odometer_masks(
+    top_path: str,
+    bot_path: str,
+    bg_hex: str = "#08090C",
+    width: int = 1920,
+    top_h: int = 440,
+    bot_h: int = 480,
+) -> tuple[str, str]:
+    """
+    Create smooth vertical feather-edge masks for odometer digit strips so scrolling numerals
+    fade naturally into deep shadow rather than clipping along hard invisible lines.
+    """
+    rgb = hex_to_rgb(bg_hex, (8, 9, 12))
+    # Top mask: opaque from y=0..top_h-48, fading smoothly to alpha=0 at y=top_h
+    yy_t = np.linspace(0.0, 1.0, top_h, dtype=np.float32)[:, None]
+    a_t = np.where(yy_t < 0.86, 255.0, np.clip((1.0 - yy_t) / 0.14, 0.0, 1.0) ** 1.3 * 255.0)
+    arr_t = np.zeros((top_h, width, 4), dtype=np.uint8)
+    arr_t[..., :3] = rgb
+    arr_t[..., 3] = np.broadcast_to(a_t, (top_h, width)).astype(np.uint8)
+
+    # Bot mask: fades in alpha=0..255 across first 14%, opaque downward
+    yy_b = np.linspace(0.0, 1.0, bot_h, dtype=np.float32)[:, None]
+    a_b = np.where(yy_b > 0.14, 255.0, np.clip(yy_b / 0.14, 0.0, 1.0) ** 1.3 * 255.0)
+    arr_b = np.zeros((bot_h, width, 4), dtype=np.uint8)
+    arr_b[..., :3] = rgb
+    arr_b[..., 3] = np.broadcast_to(a_b, (bot_h, width)).astype(np.uint8)
+
+    os.makedirs(os.path.dirname(os.path.abspath(top_path)), exist_ok=True)
+    Image.fromarray(arr_t, "RGBA").save(top_path, "PNG")
+    Image.fromarray(arr_b, "RGBA").save(bot_path, "PNG")
+    return top_path, bot_path
 
 
 def render_hollow_gold_frame(

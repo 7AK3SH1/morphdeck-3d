@@ -2,6 +2,16 @@
 
 All notable changes to **morphdeck-3d** will be documented in this file.
 
+## [5.0.0] - 2026-11-27 - Optical Scrim Precision, Depth-Sandwich Framing & Borderless Glass Docks
+
+### Improved & Fixed
+- **Generous 3D Camera Framing (`scripts/render_glb_preview.py`)**: Expanded GLB projection distance (`cam_dist = span * 2.75`, normalized `w >= h` frames across `poster_depth_reveal`, `rotational_drift_3d`, `swiss_bento_morph`, `chart_infographic`, `timeline_rail_morph`, and `closing_finale`) so wide hardware models like `MaterialsVariantsShoe` never clip heel or toe edges.
+- **Behind-Subject Depth Sandwich & Legible Gallery Placards (`poster_depth_reveal`, `picture_frame_pullback`)**: Enlarged `!!poster_word` to `152pt-184pt` layered behind `!!Hero3D` / `!!poster_hero` so typography interlocks physically behind the 3D foreground, and upgraded left gallery subtitles to high-contrast `#CBD5E1` slate with drop-shadow depth.
+- **Borderless Backdrop-Refracted Spotlight Dock (`refracted_spotlight_dock`)**: Replaced hard outlined pill boxes with soft vertical-fade frosted frost gliders (`render_soft_dock_glider`), crisp `16:9` destination thumbnails, `1.2px` white destination underlines (`!!DockLine*`), dynamic 3-or-4-item rail math, and synchronized `<a:srcRect t="-100000" b="100000"/>` curtain wipes across both COM and cross-platform OpenXML engines.
+- **3-Stage Portal Continuity (`real_portal_flythrough`) & Frosted Elevator Triptych (`vertical_world_elevator`)**: Full `exterior -> interior -> horizon` transition bridge (`!!pt_hor_title`/`!!pt_hor_body`) plus horizon-reflected frost triptych (`elev_rcard_h_*`) directly sliced from the `1920x2160` alpine panorama (`use_hero_3d: false` option removes mid-air hardware over cliffs).
+- **Feathered Odometer Slot Masks & Non-Periodic Paper Deckle Edges (`scripts/studio_cutout.py`)**: Upgraded odometer reels to `90pt` / `112pt` rows with smooth gradient-feathered slot apertures (`render_odometer_masks`), replaced periodic `sin()` waves with Gaussian-smoothed Brownian deckle paper edges, and added optical top/bottom-left scrims on bright landscapes (`flyby_wipe`, `portal_bg`).
+- **Fixed**: Removed trailing comma bug in `scripts/build_cinema_deck.ps1` cross-platform/skill bundle `timeline_rail_morph` pre-staging arguments.
+
 ## [4.0.0] - 2026-11-26 - True-Morph Physics & Museum-Grade 3D Optics
 
 ### Added

@@ -14,11 +14,11 @@ description: >
 license: Apache-2.0
 metadata:
   author: Mohamed S. Sissoko (7AK3SH1)
-  version: "4.0.0"
+  version: "5.0.0"
   repository: https://github.com/7AK3SH1/morphdeck-3d
 ---
 
-# morphdeck-3d v4.0.0 — True-Morph Physics & Museum-Grade 3D Optics
+# morphdeck-3d v5.0.0 — True-Morph Physics & Museum-Grade 3D Optics
 
 Build **cinema-grade, domain-adaptive PowerPoint presentations** with unbroken multi-object Morph continuity, open-canvas editorial typography, real PBR 3D geometry, and juried photography:
 

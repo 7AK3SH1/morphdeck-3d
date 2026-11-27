@@ -1,5 +1,5 @@
 {
-  "schema_version": 3,
+  "schema_version": 5,
   "universe": "architectural_portal",
   "brand": {
     "name": "Helios Optical Pavilions",
@@ -16,33 +16,34 @@
       "overline": "PORTAL CHOREOGRAPHY  //  CHAPTER 01",
       "headline": "Look Through Authentic Architecture",
       "portal_bg_query": "Lauterbrunnen valley Swiss Alps",
-      "bottom_cue": "REAL OPEN-LICENSE PHOTOGRAPHY + HIGH-POLY GLB"
+      "bottom_cue": "CANTILEVERED LIMESTONE PAVILION + REFLECTION POOL"
     },
     {
       "type": "real_portal_flythrough",
       "stage": "interior",
       "overline": "SPATIAL ARRIVAL  //  CHAPTER 02",
       "headline": "Inside the Optical Atrium",
-      "body": "Punched aperture layers zoom past the viewer while frosted surface glass carries core facility metrics.",
+      "body": "Punched mullion frames zoom smoothly past the viewer while natural valley daylight anchors the architectural interior.",
       "kpis": [
         { "value": "f/1.4", "label": "APERTURE RATING" },
         { "value": "48MP", "label": "MEDIUM FORMAT" }
       ]
     },
     {
+      "type": "real_portal_flythrough",
+      "stage": "horizon",
+      "overline": "INFINITE HORIZON  //  CHAPTER 03",
+      "headline": "Seamless Arrival in the Alpine Valley",
+      "body": "The steel glazing dissolves completely at 4.5x magnification, leaving an unobstructed panoramic vista."
+    },
+    {
       "type": "parchment_3d_split",
       "giant_word": "OPTICS",
       "left_label": "BRASS & LEATHER",
-      "left_text": "Machined brass dials, bellows mechanics, and coated glass elements.",
+      "left_text": "Machined brass dials, bellows mechanics, and coated optical glass elements.",
       "right_label": "ALTITUDE PROOF",
       "right_text": "Tested across alpine sub-zero thermal gradients without calibration drift.",
-      "lower_query": "Matterhorn peak snow",
-      "kpis": [
-        { "value": "-32C", "label": "THERMAL FLOOR" },
-        { "value": "0.02mm", "label": "TOLERANCE" },
-        { "value": "194G", "label": "CHASSIS MASS" },
-        { "value": "CC0", "label": "OPEN GLB" }
-      ]
+      "lower_query": "Matterhorn peak snow"
     },
     {
       "type": "vertical_world_elevator",
@@ -50,20 +51,37 @@
       "giant_word": "ALPINE",
       "overline": "ELEVATOR STAGE  //  ASCENT",
       "headline": "Sky-Split Depth Typography",
-      "body": "Display typography nests behind the segmented mountain skyline while the 3D optical assembly orbits to the right.",
+      "body": "Display letterforms nest directly behind the segmented ridge seam before the camera descends smoothly down the valley face.",
       "panorama_query": "Matterhorn peak snow",
       "badge": "SKY LAYER LOCKED"
     },
     {
       "type": "vertical_world_elevator",
       "elevator_stop": "lower_ground",
-      "giant_word": "GROUND",
+      "giant_word": "ALPINE",
       "overline": "ELEVATOR STAGE  //  DESCENT",
-      "headline": "Continuous Camera Rig",
+      "headline": "Precision Field Rig at Altitude",
+      "use_hero_3d": false,
       "cards": [
-        { "value": "4.2s", "title": "Morph Travel Time", "desc": "Shared canvas gliders maintain unbroken camera continuity across slides." },
-        { "value": "3-PT", "title": "Studio Light Rig", "desc": "Key, fill, and rim scRGB emitters upgrade <am3d:model3d> shading." },
-        { "value": "0%", "title": "Calibration Balls", "desc": "Strictly genuine architectural and landscape photography." }
+        { "value": "4.2s", "title": "Unbroken Pan", "desc": "Single-pass 1920x2160 terrain rig glides 520pt vertically without cuts." },
+        { "value": "3-PT", "title": "Studio Light Rig", "desc": "Calibrated key, fill, and rim illumination sculpts architectural brass and terrain relief." },
+        { "value": "0%", "title": "Frame Clutter", "desc": "Backdrop-refracted frosted cards replace flat opaque UI boxes." }
+      ]
+    },
+    {
+      "type": "refracted_spotlight_dock",
+      "dock_index": 0,
+      "bg_query": "Lauterbrunnen valley Swiss Alps",
+      "spotlight": {
+        "tag": "ALPINE STUDY  //  01",
+        "title": "Lauterbrunnen Glacial Valley",
+        "subtitle": "Granite shear walls & high-altitude atmospheric perspective",
+        "body": "Select any destination in the refracted glass navigation rail to trigger a full-bleed curtain wipe across locations."
+      },
+      "dock": [
+        { "title": "Lauterbrunnen", "subtitle": "Glacial Valley", "query": "Lauterbrunnen valley Swiss Alps" },
+        { "title": "Dolomites", "subtitle": "Odle Limestone", "query": "Dolomites Odle mountain landscape" },
+        { "title": "Matterhorn", "subtitle": "High Altitude", "query": "Matterhorn peak snow" }
       ]
     },
     {
@@ -71,29 +89,28 @@
       "dock_index": 1,
       "bg_query": "Dolomites Odle mountain landscape",
       "spotlight": {
-        "tag": "MATERIAL STUDY  //  02",
-        "title": "Backdrop-Refracted Glass Dock",
-        "subtitle": "Gaussian blur sliced directly from the active slide photo",
-        "body": "Each dock panel refracts its exact underlying pixel coordinates and carries a gliding active highlight frame."
+        "tag": "ALPINE STUDY  //  02",
+        "title": "Dolomites Odle Ridges",
+        "subtitle": "Gaussian blur sliced directly from active underlying pixel coordinates",
+        "body": "Soft vertical-fade glass glides horizontally across 16:9 thumbnails while the incoming landscape wipes vertically into frame."
       },
       "dock": [
-        { "title": "Pavilion", "subtitle": "Portal Entry", "query": "Lauterbrunnen valley Swiss Alps" },
-        { "title": "Dolomites", "subtitle": "Alpine Ridge", "query": "Dolomites Odle mountain landscape" },
-        { "title": "Glacier", "subtitle": "High Altitude", "query": "Matterhorn peak snow" },
-        { "title": "Rotunda", "subtitle": "Classical Dome", "query": "Pantheon Rome interior dome" }
+        { "title": "Lauterbrunnen", "subtitle": "Glacial Valley", "query": "Lauterbrunnen valley Swiss Alps" },
+        { "title": "Dolomites", "subtitle": "Odle Limestone", "query": "Dolomites Odle mountain landscape" },
+        { "title": "Matterhorn", "subtitle": "High Altitude", "query": "Matterhorn peak snow" }
       ]
     },
     {
       "type": "closing_finale",
       "overline": "ARCHITECTURE & OPTICS",
       "headline": "Every Frame Anchored in Reality",
-      "summary": "High-resolution open-license locations combined with genuine glTF 2.0 3D models and zero decorative clutter.",
+      "summary": "High-resolution open-license locations combined with genuine studio 3D hardware and zero decorative clutter.",
       "metrics": [
         { "value": "6", "label": "VISUAL UNIVERSES" },
         { "value": "17", "label": "MORPH ENGINES" },
-        { "value": "3D", "label": "KHRONOS GLB" }
+        { "value": "3D", "label": "OPEN GLB" }
       ],
-      "cta": "BUILD YOUR OWN DECK"
+      "cta": "MORPHDECK-3D V5.0"
     }
   ]
 }
